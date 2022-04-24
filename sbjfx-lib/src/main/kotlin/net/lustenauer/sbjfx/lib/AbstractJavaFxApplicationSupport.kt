@@ -1,12 +1,5 @@
 package net.lustenauer.sbjfx.lib
 
-import net.lustenauer.sbjfx.lib.Constant.KEY_APPICONS
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_HEIGHT
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_RESIZABLE
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_STYLE
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_WIDTH
-import net.lustenauer.sbjfx.lib.Constant.KEY_TITLE
-import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import javafx.application.Application
 import javafx.application.HostServices
 import javafx.application.Platform
@@ -20,6 +13,13 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.DECORATED
 import javafx.stage.StageStyle.TRANSPARENT
 import mu.KotlinLogging
+import net.lustenauer.sbjfx.lib.Constant.KEY_APPICONS
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_HEIGHT
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_RESIZABLE
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_STYLE
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_WIDTH
+import net.lustenauer.sbjfx.lib.Constant.KEY_TITLE
+import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
@@ -34,7 +34,7 @@ import java.util.function.Consumer
  * @author Felix Roske
  * @author Patric Hollenstein
  */
-abstract class AbstractJavaFxApplicationSupport protected constructor() : Application() {
+abstract class AbstractJavaFxApplicationSupport : Application() {
     private val defaultIcons: MutableList<Image> = ArrayList()
     private val splashIsShowing: CompletableFuture<Runnable> = CompletableFuture()
 
@@ -153,15 +153,13 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
     /**
      * todo check private is ok for this function or not
      */
-    private fun loadDefaultIcons(): Collection<Image> {
-        return listOf(
-            loadIcon("/icons/gear_16x16.png"),
-            loadIcon("/icons/gear_24x24.png"),
-            loadIcon("/icons/gear_36x36.png"),
-            loadIcon("/icons/gear_42x42.png"),
-            loadIcon("/icons/gear_64x64.png")
-        )
-    }
+    private fun loadDefaultIcons(): Collection<Image> = listOf(
+        loadIcon("/icons/gear_16x16.png"),
+        loadIcon("/icons/gear_24x24.png"),
+        loadIcon("/icons/gear_36x36.png"),
+        loadIcon("/icons/gear_42x42.png"),
+        loadIcon("/icons/gear_64x64.png")
+    )
 
     private fun loadIcon(name: String): Image = Image(
         javaClass.getResource(name)?.toExternalForm()
