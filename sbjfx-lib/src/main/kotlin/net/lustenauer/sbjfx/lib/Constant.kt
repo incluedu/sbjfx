@@ -1,4 +1,4 @@
-package de.felixroske.jfxsupport
+package net.lustenauer.sbjfx.lib
 
 internal object Constant {
     const val KEY_STAGE_STYLE = "javafx.stage.style"

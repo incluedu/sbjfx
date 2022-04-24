@@ -5,6 +5,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'kotlin'
 apply plugin: "kotlin-kapt"
+apply plugin: 'org.openjfx.javafxplugin'
 
 tasks.withType(Jar) { it.duplicatesStrategy = DuplicatesStrategy.WARN }
 
@@ -13,14 +14,19 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "io.github.microutils:kotlin-logging-jvm:2.1.21"
-
-    implementation project(':springboot-javafx-support')
+    implementation project(':sbjfx-lib')
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 }
 
 compileKotlin {
     kotlinOptions {
         freeCompilerArgs = ["-Xjsr305=strict"]
-        jvmTarget = 1.8
+        jvmTarget = 11
     }
 }
+
+javafx {
+    version = "$javafxVersion"
+    modules = ['javafx.base', 'javafx.controls', 'javafx.fxml', 'javafx.graphics']
+}
+

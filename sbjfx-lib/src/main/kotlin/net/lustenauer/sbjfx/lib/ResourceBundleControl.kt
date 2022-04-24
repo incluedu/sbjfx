@@ -1,4 +1,4 @@
-package de.felixroske.jfxsupport
+package net.lustenauer.sbjfx.lib
 
 import java.io.IOException
 import java.io.InputStream

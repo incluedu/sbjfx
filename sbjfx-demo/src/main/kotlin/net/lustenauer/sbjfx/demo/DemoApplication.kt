@@ -1,8 +1,8 @@
-package net.lustenauer.sbfx.demoapp
+package net.lustenauer.sbjfx.demo
 
-import de.felixroske.jfxsupport.AbstractJavaFxApplicationSupport
-import de.felixroske.jfxsupport.AbstractJavaFxApplicationSupport.Companion.launch
-import net.lustenauer.sbfx.demoapp.views.HelloWorldView
+import net.lustenauer.sbjfx.demo.views.HelloWorldView
+import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport
+import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.launch
 import org.springframework.boot.autoconfigure.SpringBootApplication
 
 @SpringBootApplication

@@ -1,4 +1,4 @@
-package de.felixroske.jfxsupport
+package net.lustenauer.sbjfx.lib
 
 import de.felixroske.jfxsupport.anotations.FXMLView
 import javafx.application.Platform
@@ -13,6 +13,7 @@ import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.util.Callback
 import mu.KotlinLogging
+import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import java.io.IOException
@@ -270,7 +271,12 @@ abstract class AbstractFxmlView : ApplicationContextAware {
         // Read global css when available:
         val list = PropertyReaderHelper[applicationContext.environment, "javafx.css"]
         if (list.isNotEmpty()) {
-            list.forEach(Consumer { css -> parent.stylesheets.add(javaClass.getResource(css)?.toExternalForm()) })
+            list.forEach(Consumer { css ->
+                parent.stylesheets.add(
+                    javaClass.getResource(css)?.toExternalForm()
+                        ?: throw ResourceNotFoundException("Cannot find resource $css")
+                )
+            })
         }
         addCSSFromAnnotation(parent)
         val uri = javaClass.getResource(styleSheetName) ?: return

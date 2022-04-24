@@ -1,8 +1,8 @@
-package net.lustenauer.sbfx.demoapp.views
+package net.lustenauer.sbjfx.demo.views
 
-import de.felixroske.jfxsupport.AbstractFxmlView
 import de.felixroske.jfxsupport.anotations.FXMLView
+import net.lustenauer.sbjfx.lib.AbstractFxmlView
 
 
-@FXMLView(value = "/test.fxml")
+@FXMLView(value = "/helloWorld.fxml")
 class HelloWorldView : AbstractFxmlView()

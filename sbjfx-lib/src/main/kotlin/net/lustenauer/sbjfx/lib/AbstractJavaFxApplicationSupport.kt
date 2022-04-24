@@ -1,12 +1,12 @@
-package de.felixroske.jfxsupport
+package net.lustenauer.sbjfx.lib
 
-import de.felixroske.jfxsupport.Constant.KEY_APPICONS
-import de.felixroske.jfxsupport.Constant.KEY_STAGE_HEIGHT
-import de.felixroske.jfxsupport.Constant.KEY_STAGE_RESIZABLE
-import de.felixroske.jfxsupport.Constant.KEY_STAGE_STYLE
-import de.felixroske.jfxsupport.Constant.KEY_STAGE_WIDTH
-import de.felixroske.jfxsupport.Constant.KEY_TITLE
-import de.felixroske.jfxsupport.PropertyReaderHelper.setIfPresent
+import net.lustenauer.sbjfx.lib.Constant.KEY_APPICONS
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_HEIGHT
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_RESIZABLE
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_STYLE
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_WIDTH
+import net.lustenauer.sbjfx.lib.Constant.KEY_TITLE
+import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import javafx.application.Application
 import javafx.application.HostServices
 import javafx.application.Platform
@@ -20,6 +20,7 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.DECORATED
 import javafx.stage.StageStyle.TRANSPARENT
 import mu.KotlinLogging
+import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import java.awt.SystemTray
@@ -40,7 +41,7 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
     private fun loadIcons(ctx: ConfigurableApplicationContext) {
         try {
             PropertyReaderHelper[ctx.environment, KEY_APPICONS]
-                    .map { icons.add(Image(javaClass.getResource(it)?.toExternalForm())) }
+                    .map { icons.add(loadIcon(it)) }
                     .ifEmpty { icons.addAll(defaultIcons) }
         } catch (e: Exception) {
             logger.error(e) { "Failed to load icons: " }
@@ -150,17 +151,22 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
     open fun beforeShowingSplash(splashStage: Stage) {}
 
     /**
-     *
+     * todo check private is ok for this function or not
      */
-    fun loadDefaultIcons(): Collection<Image> {
+    private fun loadDefaultIcons(): Collection<Image> {
         return listOf(
-            Image(javaClass.getResource("/icons/gear_16x16.png")?.toExternalForm()),
-            Image(javaClass.getResource("/icons/gear_24x24.png")?.toExternalForm()),
-            Image(javaClass.getResource("/icons/gear_36x36.png")?.toExternalForm()),
-            Image(javaClass.getResource("/icons/gear_42x42.png")?.toExternalForm()),
-            Image(javaClass.getResource("/icons/gear_64x64.png")?.toExternalForm())
+            loadIcon("/icons/gear_16x16.png"),
+            loadIcon("/icons/gear_24x24.png"),
+            loadIcon("/icons/gear_36x36.png"),
+            loadIcon("/icons/gear_42x42.png"),
+            loadIcon("/icons/gear_64x64.png")
         )
     }
+
+    private fun loadIcon(name: String): Image = Image(
+        javaClass.getResource(name)?.toExternalForm()
+            ?: throw ResourceNotFoundException("cannot find resource $name")
+    )
 
     companion object {
         lateinit var savedInitialView: Class<out AbstractFxmlView>

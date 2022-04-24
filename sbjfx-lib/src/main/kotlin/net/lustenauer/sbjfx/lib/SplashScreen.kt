@@ -1,9 +1,10 @@
-package de.felixroske.jfxsupport
+package net.lustenauer.sbjfx.lib
 
 import javafx.scene.Parent
 import javafx.scene.control.ProgressBar
 import javafx.scene.image.ImageView
 import javafx.scene.layout.VBox
+import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 
 /**
  * A default standard splash pane implementation Subclass it and override it's
@@ -12,6 +13,7 @@ import javafx.scene.layout.VBox
  *
  * @author Felix Roske
  * @author Andreas Jay
+ * @author Patric Hollenstein
  */
 class SplashScreen {
     /**
@@ -21,7 +23,10 @@ class SplashScreen {
      */
     val parent: Parent
         get() {
-            val imageView = ImageView(javaClass.getResource(IMAGE_PATH).toExternalForm())
+            val imageView = ImageView(
+                javaClass.getResource(IMAGE_PATH)?.toExternalForm()
+                    ?: throw ResourceNotFoundException("Cannot found image path $IMAGE_PATH")
+            )
             val splashProgressBar = ProgressBar()
             splashProgressBar.prefWidth = imageView.image.width
             val vbox = VBox()

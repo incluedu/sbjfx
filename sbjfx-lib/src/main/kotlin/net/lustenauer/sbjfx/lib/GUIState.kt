@@ -1,4 +1,4 @@
-package de.felixroske.jfxsupport
+package net.lustenauer.sbjfx.lib
 
 import javafx.application.HostServices
 import javafx.scene.Scene

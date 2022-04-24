@@ -1,4 +1,4 @@
-package de.felixroske.jfxsupport
+package net.lustenauer.sbjfx.lib
 
 import org.springframework.core.env.Environment
 import java.util.function.Consumer
