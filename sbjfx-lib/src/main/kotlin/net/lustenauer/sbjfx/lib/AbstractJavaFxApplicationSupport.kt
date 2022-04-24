@@ -1,0 +1,279 @@
+package de.felixroske.jfxsupport
+
+import de.felixroske.jfxsupport.Constant.KEY_APPICONS
+import de.felixroske.jfxsupport.Constant.KEY_STAGE_HEIGHT
+import de.felixroske.jfxsupport.Constant.KEY_STAGE_RESIZABLE
+import de.felixroske.jfxsupport.Constant.KEY_STAGE_STYLE
+import de.felixroske.jfxsupport.Constant.KEY_STAGE_WIDTH
+import de.felixroske.jfxsupport.Constant.KEY_TITLE
+import de.felixroske.jfxsupport.PropertyReaderHelper.setIfPresent
+import javafx.application.Application
+import javafx.application.HostServices
+import javafx.application.Platform
+import javafx.scene.Scene
+import javafx.scene.control.Alert
+import javafx.scene.control.Alert.AlertType
+import javafx.scene.image.Image
+import javafx.scene.paint.Color
+import javafx.stage.Stage
+import javafx.stage.StageStyle
+import javafx.stage.StageStyle.DECORATED
+import javafx.stage.StageStyle.TRANSPARENT
+import mu.KotlinLogging
+import org.springframework.boot.SpringApplication
+import org.springframework.context.ConfigurableApplicationContext
+import java.awt.SystemTray
+import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
+
+/**
+ * The Class AbstractJavaFxApplicationSupport.
+ *
+ * @author Felix Roske
+ * @author Patric Hollenstein
+ */
+abstract class AbstractJavaFxApplicationSupport protected constructor() : Application() {
+    private val defaultIcons: MutableList<Image> = ArrayList()
+    private val splashIsShowing: CompletableFuture<Runnable> = CompletableFuture()
+
+    private fun loadIcons(ctx: ConfigurableApplicationContext) {
+        try {
+            PropertyReaderHelper[ctx.environment, KEY_APPICONS]
+                    .map { icons.add(Image(javaClass.getResource(it)?.toExternalForm())) }
+                    .ifEmpty { icons.addAll(defaultIcons) }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to load icons: " }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javafx.application.Application#init()
+     */
+    @Throws(Exception::class)
+    override fun init() {
+        // Load in JavaFx Thread and reused by Completable Future, but should not be a big deal.
+        defaultIcons.addAll(loadDefaultIcons())
+        CompletableFuture.supplyAsync { SpringApplication.run(this.javaClass, *savedArgs) }
+                .whenComplete { ctx, throwable ->
+                    if (throwable != null) {
+                        logger.error(throwable) { "Failed to load spring application context: " }
+                        Platform.runLater { errorAction.accept(throwable) }
+                    } else {
+                        Platform.runLater {
+                            loadIcons(ctx)
+                            launchApplicationView(ctx)
+                        }
+                    }
+                }
+                .thenAcceptBothAsync(splashIsShowing) { _, closeSplash -> Platform.runLater(closeSplash) }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javafx.application.Application#start(javafx.stage.Stage)
+     */
+    @Throws(Exception::class)
+    override fun start(stage: Stage) {
+        GUIState.stage = stage
+        GUIState.hostServices = hostServices
+
+        with(Stage(TRANSPARENT)) {
+            if (splashScreen.visible()) {
+                scene = Scene(splashScreen.parent, Color.TRANSPARENT)
+                beforeShowingSplash(this)
+                show()
+            }
+
+            splashIsShowing.complete(Runnable {
+                showInitialView()
+                if (splashScreen.visible()) {
+                    close()
+                }
+            })
+        }
+    }
+
+    /**
+     * Show initial view.
+     */
+    private fun showInitialView() {
+        val stageStyle = applicationContext.environment.getProperty(KEY_STAGE_STYLE)
+        if (stageStyle != null) {
+            stage.initStyle(StageStyle.valueOf(stageStyle.uppercase(Locale.getDefault())))
+        } else {
+            stage.initStyle(DECORATED)
+        }
+        beforeInitialView(stage, applicationContext)
+        showInitialView(savedInitialView)
+    }
+
+    /**
+     * Launch application view.
+     */
+    private fun launchApplicationView(ctx: ConfigurableApplicationContext) {
+        applicationContext = ctx
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javafx.application.Application#stop()
+     */
+    @Throws(Exception::class)
+    override fun stop() {
+        super.stop()
+        applicationContext.close()
+    }
+
+    /**
+     * Gets called after full initialization of Spring application context
+     * and JavaFX platform right before the initial view is shown.
+     * Override this method as a hook to add special code for your app. Especially meant to
+     * add AWT code to add a system tray icon and behavior by calling
+     * GUIState.getSystemTray() and modifying it accordingly.
+     *
+     *
+     * By default, noop.
+     *
+     * @param stage can be used to customize the stage before being displayed
+     * @param ctx   represents spring ctx where you can loog for beans.
+     */
+    open fun beforeInitialView(stage: Stage, ctx: ConfigurableApplicationContext?) {}
+
+    /**
+     * Extension point called before show splash screen
+     */
+    open fun beforeShowingSplash(splashStage: Stage) {}
+
+    /**
+     *
+     */
+    fun loadDefaultIcons(): Collection<Image> {
+        return listOf(
+            Image(javaClass.getResource("/icons/gear_16x16.png")?.toExternalForm()),
+            Image(javaClass.getResource("/icons/gear_24x24.png")?.toExternalForm()),
+            Image(javaClass.getResource("/icons/gear_36x36.png")?.toExternalForm()),
+            Image(javaClass.getResource("/icons/gear_42x42.png")?.toExternalForm()),
+            Image(javaClass.getResource("/icons/gear_64x64.png")?.toExternalForm())
+        )
+    }
+
+    companion object {
+        lateinit var savedInitialView: Class<out AbstractFxmlView>
+        lateinit var splashScreen: SplashScreen
+        private lateinit var applicationContext: ConfigurableApplicationContext
+
+        private val logger = KotlinLogging.logger { }
+        private var savedArgs = arrayOfNulls<String>(0)
+
+
+        private val icons: MutableList<Image> = ArrayList()
+        private var errorAction = defaultErrorAction()
+        val stage: Stage get() = GUIState.stage
+        val scene: Scene get() = GUIState.scene
+        val appHostServices: HostServices? get() = GUIState.hostServices
+        val systemTray: SystemTray? get() = GUIState.systemTray
+
+        /**
+         * Default error action that shows a message and closes the app.
+         */
+        private fun defaultErrorAction(): Consumer<Throwable> = Consumer {
+            val alert = Alert(
+                AlertType.ERROR, """
+ Oops! An unrecoverable error occurred.
+ Please contact your software vendor.
+ 
+ The application will stop now.
+ """.trimIndent()
+            )
+            alert.showAndWait().ifPresent { Platform.exit() }
+        }
+
+        /**
+         * Apply env props to view.
+         */
+        private fun applyEnvPropsToView() {
+            val env = applicationContext.environment
+            setIfPresent(env, KEY_TITLE, String::class.java) { stage.title = it }
+            setIfPresent(env, KEY_STAGE_WIDTH, Double::class.java) { stage.width = it }
+            setIfPresent(env, KEY_STAGE_HEIGHT, Double::class.java) { stage.height = it }
+            setIfPresent(env, KEY_STAGE_RESIZABLE, Boolean::class.java) { stage.isResizable = it }
+        }
+
+        /**
+         * Sets the title. Allows overwriting values applied during construction at
+         * a later time.
+         *
+         * @param title the new title
+         */
+        protected fun setTitle(title: String?) {
+            stage.title = title
+        }
+
+        /**
+         * Launch app.
+         *
+         * @param appClass the app class
+         * @param view     the view
+         * @param args     the args
+         */
+        fun launch(appClass: Class<out Application>, view: Class<out AbstractFxmlView>, args: Array<String?>) =
+            launch(appClass, view, SplashScreen(), args)
+
+        /**
+         * todo doc is missing
+         */
+        @JvmStatic
+        fun launch(
+            appClass: Class<out Application>,
+            view: Class<out AbstractFxmlView>,
+            splashScreen: SplashScreen?,
+            args: Array<String?>
+        ) {
+            savedInitialView = view
+            savedArgs = args
+            if (splashScreen != null) {
+                Companion.splashScreen = splashScreen
+            } else {
+                Companion.splashScreen = SplashScreen()
+            }
+            if (SystemTray.isSupported()) {
+                GUIState.systemTray = SystemTray.getSystemTray()
+            }
+            launch(appClass, *args)
+        }
+
+        /**
+         * Show view.
+         *
+         * @param newView the new view
+         */
+        @JvmStatic
+        fun showInitialView(newView: Class<out AbstractFxmlView>) {
+            try {
+                val view = applicationContext.getBean(newView)
+                view.initFirstView()
+                applyEnvPropsToView()
+                stage.icons.addAll(icons)
+                stage.show()
+            } catch (t: Throwable) {
+                logger.error(t) { "Failed to load application: " }
+                errorAction.accept(t)
+            }
+        }
+
+        /**
+         * todo doc is missing
+         */
+        @JvmStatic
+        fun setErrorAction(callback: Consumer<Throwable>) {
+            errorAction = callback
+        }
+
+
+    }
+}
