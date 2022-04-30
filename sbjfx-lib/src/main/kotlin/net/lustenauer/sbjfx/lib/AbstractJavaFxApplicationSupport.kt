@@ -126,7 +126,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
     @Throws(Exception::class)
     override fun stop() {
         super.stop()
-        applicationContext.close()
+        if (isApplicationContextInitialized()) applicationContext.close()
     }
 
     /**
@@ -272,5 +272,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         fun setErrorAction(callback: (t: Throwable) -> Unit) {
             errorAction = callback
         }
+
+        internal fun isApplicationContextInitialized() = ::applicationContext.isInitialized
     }
 }
