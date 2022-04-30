@@ -26,7 +26,6 @@ import org.springframework.context.ConfigurableApplicationContext
 import java.awt.SystemTray
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 
 /**
  * The Class AbstractJavaFxApplicationSupport.
@@ -61,7 +60,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                 .whenComplete { ctx, throwable ->
                     if (throwable != null) {
                         logger.error(throwable) { "Failed to load spring application context: " }
-                        Platform.runLater { errorAction.accept(throwable) }
+                        Platform.runLater { errorAction(throwable) }
                     } else {
                         Platform.runLater {
                             loadIcons(ctx)
@@ -176,7 +175,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
 
 
         private val icons: MutableList<Image> = ArrayList()
-        private var errorAction = defaultErrorAction()
+        private var errorAction: (t: Throwable) -> Unit = defaultErrorAction()
         val stage: Stage get() = GUIState.stage
         val scene: Scene get() = GUIState.scene
         val appHostServices: HostServices? get() = GUIState.hostServices
@@ -185,16 +184,12 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         /**
          * Default error action that shows a message and closes the app.
          */
-        private fun defaultErrorAction(): Consumer<Throwable> = Consumer {
-            val alert = Alert(
-                AlertType.ERROR, """
- Oops! An unrecoverable error occurred.
- Please contact your software vendor.
- 
- The application will stop now.
- """.trimIndent()
-            )
-            alert.showAndWait().ifPresent { Platform.exit() }
+        private fun defaultErrorAction(): (Throwable) -> Unit = {
+            Alert(
+                AlertType.ERROR,
+                "Oops! An unrecoverable error occurred.\nPlease contact your software vendor.\n\n" +
+                        "The application will stop now."
+            ).showAndWait().ifPresent { Platform.exit() }
         }
 
         /**
@@ -264,20 +259,19 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                 applyEnvPropsToView()
                 stage.icons.addAll(icons)
                 stage.show()
+                throw Exception("Test exception")
             } catch (t: Throwable) {
                 logger.error(t) { "Failed to load application: " }
-                errorAction.accept(t)
+                errorAction(t)
             }
         }
 
         /**
-         * todo doc is missing
+         * Extension point to override the error action
          */
         @JvmStatic
-        fun setErrorAction(callback: Consumer<Throwable>) {
+        fun setErrorAction(callback: (t: Throwable) -> Unit) {
             errorAction = callback
         }
-
-
     }
 }
