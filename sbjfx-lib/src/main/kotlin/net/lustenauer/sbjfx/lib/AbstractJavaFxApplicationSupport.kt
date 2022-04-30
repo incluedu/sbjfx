@@ -259,7 +259,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                 applyEnvPropsToView()
                 stage.icons.addAll(icons)
                 stage.show()
-                throw Exception("Test exception")
             } catch (t: Throwable) {
                 logger.error(t) { "Failed to load application: " }
                 errorAction(t)

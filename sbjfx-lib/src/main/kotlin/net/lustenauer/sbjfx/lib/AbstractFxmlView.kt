@@ -1,6 +1,5 @@
 package net.lustenauer.sbjfx.lib
 
-import de.felixroske.jfxsupport.anotations.FXMLView
 import javafx.application.Platform
 import javafx.beans.property.SimpleObjectProperty
 import javafx.fxml.FXMLLoader
@@ -13,6 +12,7 @@ import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.util.Callback
 import mu.KotlinLogging
+import net.lustenauer.sbjfx.lib.anotations.FXMLView
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware

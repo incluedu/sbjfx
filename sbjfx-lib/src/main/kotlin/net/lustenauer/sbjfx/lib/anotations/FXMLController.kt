@@ -1,4 +1,4 @@
-package de.felixroske.jfxsupport.anotations
+package net.lustenauer.sbjfx.lib.anotations
 
 import org.springframework.stereotype.Component
 
