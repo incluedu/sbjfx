@@ -1,12 +1,5 @@
 package net.lustenauer.sbjfx.lib
 
-import net.lustenauer.sbjfx.lib.Constant.KEY_APPICONS
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_HEIGHT
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_RESIZABLE
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_STYLE
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_WIDTH
-import net.lustenauer.sbjfx.lib.Constant.KEY_TITLE
-import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import javafx.application.Application
 import javafx.application.HostServices
 import javafx.application.Platform
@@ -20,13 +13,19 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.DECORATED
 import javafx.stage.StageStyle.TRANSPARENT
 import mu.KotlinLogging
+import net.lustenauer.sbjfx.lib.Constant.KEY_APPICONS
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_HEIGHT
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_RESIZABLE
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_STYLE
+import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_WIDTH
+import net.lustenauer.sbjfx.lib.Constant.KEY_TITLE
+import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import java.awt.SystemTray
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 
 /**
  * The Class AbstractJavaFxApplicationSupport.
@@ -34,7 +33,7 @@ import java.util.function.Consumer
  * @author Felix Roske
  * @author Patric Hollenstein
  */
-abstract class AbstractJavaFxApplicationSupport protected constructor() : Application() {
+abstract class AbstractJavaFxApplicationSupport : Application() {
     private val defaultIcons: MutableList<Image> = ArrayList()
     private val splashIsShowing: CompletableFuture<Runnable> = CompletableFuture()
 
@@ -61,7 +60,7 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
                 .whenComplete { ctx, throwable ->
                     if (throwable != null) {
                         logger.error(throwable) { "Failed to load spring application context: " }
-                        Platform.runLater { errorAction.accept(throwable) }
+                        Platform.runLater { errorAction(throwable) }
                     } else {
                         Platform.runLater {
                             loadIcons(ctx)
@@ -153,15 +152,13 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
     /**
      * todo check private is ok for this function or not
      */
-    private fun loadDefaultIcons(): Collection<Image> {
-        return listOf(
-            loadIcon("/icons/gear_16x16.png"),
-            loadIcon("/icons/gear_24x24.png"),
-            loadIcon("/icons/gear_36x36.png"),
-            loadIcon("/icons/gear_42x42.png"),
-            loadIcon("/icons/gear_64x64.png")
-        )
-    }
+    private fun loadDefaultIcons(): Collection<Image> = listOf(
+        loadIcon("/icons/gear_16x16.png"),
+        loadIcon("/icons/gear_24x24.png"),
+        loadIcon("/icons/gear_36x36.png"),
+        loadIcon("/icons/gear_42x42.png"),
+        loadIcon("/icons/gear_64x64.png")
+    )
 
     private fun loadIcon(name: String): Image = Image(
         javaClass.getResource(name)?.toExternalForm()
@@ -178,7 +175,7 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
 
 
         private val icons: MutableList<Image> = ArrayList()
-        private var errorAction = defaultErrorAction()
+        private var errorAction: (t: Throwable) -> Unit = defaultErrorAction()
         val stage: Stage get() = GUIState.stage
         val scene: Scene get() = GUIState.scene
         val appHostServices: HostServices? get() = GUIState.hostServices
@@ -187,16 +184,12 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
         /**
          * Default error action that shows a message and closes the app.
          */
-        private fun defaultErrorAction(): Consumer<Throwable> = Consumer {
-            val alert = Alert(
-                AlertType.ERROR, """
- Oops! An unrecoverable error occurred.
- Please contact your software vendor.
- 
- The application will stop now.
- """.trimIndent()
-            )
-            alert.showAndWait().ifPresent { Platform.exit() }
+        private fun defaultErrorAction(): (Throwable) -> Unit = {
+            Alert(
+                AlertType.ERROR,
+                "Oops! An unrecoverable error occurred.\nPlease contact your software vendor.\n\n" +
+                        "The application will stop now."
+            ).showAndWait().ifPresent { Platform.exit() }
         }
 
         /**
@@ -266,20 +259,19 @@ abstract class AbstractJavaFxApplicationSupport protected constructor() : Applic
                 applyEnvPropsToView()
                 stage.icons.addAll(icons)
                 stage.show()
+                throw Exception("Test exception")
             } catch (t: Throwable) {
                 logger.error(t) { "Failed to load application: " }
-                errorAction.accept(t)
+                errorAction(t)
             }
         }
 
         /**
-         * todo doc is missing
+         * Extension point to override the error action
          */
         @JvmStatic
-        fun setErrorAction(callback: Consumer<Throwable>) {
+        fun setErrorAction(callback: (t: Throwable) -> Unit) {
             errorAction = callback
         }
-
-
     }
 }

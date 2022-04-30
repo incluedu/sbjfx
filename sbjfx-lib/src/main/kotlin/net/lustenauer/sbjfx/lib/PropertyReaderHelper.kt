@@ -19,7 +19,6 @@ object PropertyReaderHelper {
      * the name of the property to lookup from [Environment].
      * @return the list
      */
-    @JvmStatic
     operator fun get(env: Environment, propName: String): List<String> {
         val list: MutableList<String> = ArrayList()
         val singleProp = env.getProperty(propName)
@@ -52,7 +51,6 @@ object PropertyReaderHelper {
      * @param function
      * the function
     </T> */
-    @JvmStatic
     fun <T> setIfPresent(env: Environment, key: String, type: Class<T>, function: Consumer<T>) {
         env.getProperty(key, type)?.let { function.accept(it) }
     }
@@ -64,7 +62,6 @@ object PropertyReaderHelper {
      *
      * @return the path equivalent to a package structure.
      */
-    @JvmStatic
     fun determineFilePathFromPackageName(clazz: Class<*>): String =
         "/" + clazz.getPackage().name.replace('.', '/') + "/"
 }
