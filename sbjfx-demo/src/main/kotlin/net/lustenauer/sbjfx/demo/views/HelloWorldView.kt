@@ -4,5 +4,5 @@ import net.lustenauer.sbjfx.lib.AbstractFxmlView
 import net.lustenauer.sbjfx.lib.anotations.FXMLView
 
 
-@FXMLView(value = "/helloWorld1.fxml")
+@FXMLView(value = "/helloWorld.fxml")
 class HelloWorldView : AbstractFxmlView()

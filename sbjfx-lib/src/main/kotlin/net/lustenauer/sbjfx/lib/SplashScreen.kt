@@ -7,7 +7,7 @@ import javafx.scene.layout.VBox
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 
 /**
- * A default standard splash pane implementation Subclass it and override it's
+ * A default standard splash pane implementation Subclass it and override its
  * methods to customize with your own behavior. Be aware that you can not use
  * Spring features here yet.
  *
@@ -15,17 +15,22 @@ import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
  * @author Andreas Jay
  * @author Patric Hollenstein
  */
-class SplashScreen {
+open class SplashScreen {
+    /**
+     *
+     */
+    open val imagePath = DEFAULT_IMAGE_PATH
+
     /**
      * Override this to create your own splash pane parent node.
      *
      * @return A standard image
      */
-    val parent: Parent
+    open val parent: Parent
         get() {
             val imageView = ImageView(
-                javaClass.getResource(IMAGE_PATH)?.toExternalForm()
-                    ?: throw ResourceNotFoundException("Cannot found image path $IMAGE_PATH")
+                javaClass.getResource(imagePath)?.toExternalForm()
+                    ?: throw ResourceNotFoundException("Cannot found image path $imagePath")
             )
             val splashProgressBar = ProgressBar()
             splashProgressBar.prefWidth = imageView.image.width
@@ -39,9 +44,8 @@ class SplashScreen {
      *
      * @return true by default
      */
-    fun visible(): Boolean {
-        return true
-    }
+    open fun visible(): Boolean = true
+
 
     companion object {
         /**
@@ -49,6 +53,6 @@ class SplashScreen {
          *
          * @return "/splash/javafx.png"
          */
-        const val IMAGE_PATH = "/splash/javafx.png"
+        const val DEFAULT_IMAGE_PATH = "/splash/javafx.png"
     }
 }
