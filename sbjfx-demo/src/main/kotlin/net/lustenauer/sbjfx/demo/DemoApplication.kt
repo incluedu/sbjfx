@@ -15,7 +15,16 @@ open class Application : AbstractJavaFxApplicationSupport()
 fun main(args: Array<String?>) {
     // use a custom error action
     setErrorAction(customErrorAction())
-    launch(Application::class.java, HelloWorldView::class.java, CustomSplashScreen(), args)
+    launch(
+        Application::class.java,
+        HelloWorldView::class.java,
+        SplashScreen().apply {
+            imagePath = "/splash/customSplash.png"
+            headerText = "SBJFX Demo Application"
+            footerText = "Version 1.0"
+        },
+        args
+    )
 }
 
 fun customErrorAction(): (t: Throwable) -> Unit = {
@@ -23,10 +32,6 @@ fun customErrorAction(): (t: Throwable) -> Unit = {
         Alert.AlertType.ERROR,
         "Error:= ${it.localizedMessage} \n\n" + "The application will stop now."
     ).showAndWait().ifPresent { Platform.exit() }
-}
-
-class CustomSplashScreen : SplashScreen() {
-    override val imagePath = "/splash/customSplash.png"
 }
 
 

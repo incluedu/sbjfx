@@ -82,7 +82,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         GUIState.hostServices = hostServices
 
         with(Stage(TRANSPARENT)) {
-            if (splashScreen.visible()) {
+            if (splashScreen.visible) {
                 scene = Scene(splashScreen.parent, Color.TRANSPARENT)
                 beforeShowingSplash(this)
                 show()
@@ -90,7 +90,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
 
             splashIsShowing.complete(Runnable {
                 showInitialView()
-                if (splashScreen.visible()) {
+                if (splashScreen.visible) {
                     close()
                 }
             })
