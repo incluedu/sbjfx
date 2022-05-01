@@ -2,6 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion" apply(false)
     id "org.jetbrains.kotlin.kapt" version "$kotlinVersion" apply(false)
     id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion" apply(false)
+    id "org.jetbrains.dokka" version "$kotlinVersion" apply(false)
     id "org.springframework.boot" version "$springBootVersion" apply(false)
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply(false)
     id 'org.openjfx.javafxplugin' version '0.0.12' apply(false)

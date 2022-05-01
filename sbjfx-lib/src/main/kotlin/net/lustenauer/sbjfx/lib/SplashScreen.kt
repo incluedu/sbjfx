@@ -28,7 +28,7 @@ open class SplashScreen {
      *
      * @return empty by default
      */
-    var style = ""
+    var style = DEFAULT_STYLE
 
     /**
      * Change this for custom header text in default splash pane
@@ -78,11 +78,7 @@ open class SplashScreen {
             }
         }
     companion object {
-        /**
-         * Use your own splash image instead of the default one.
-         *
-         * @return "/splash/javafx.png"
-         */
+        const val DEFAULT_STYLE = ""
         const val DEFAULT_IMAGE_PATH = "/splash/javafx.png"
         const val DEFAULT_HEADER_TEXT = "SBJFX"
         const val DEFAULT_FOOTER_TEXT = "This is free software"

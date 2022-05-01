@@ -5,7 +5,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'org.openjfx.javafxplugin'
-
+apply plugin: 'org.jetbrains.dokka'
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
