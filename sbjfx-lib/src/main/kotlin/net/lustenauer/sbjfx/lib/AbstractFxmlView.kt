@@ -49,7 +49,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
     private val presenterProperty = SimpleObjectProperty<Any>()
     private val annotation: FXMLView = javaClass.getAnnotation(FXMLView::class.java)
     private val fxmlRoot = PropertyReaderHelper.determineFilePathFromPackageName(javaClass)
-    private var fxmlLoader: FXMLLoader
+    private lateinit var fxmlLoader: FXMLLoader
     private lateinit var applicationContext: ApplicationContext
     private val stage: Stage get() = GUIState.stage
     private var currentStageModality: Modality? = null
@@ -62,7 +62,6 @@ abstract class AbstractFxmlView : ApplicationContextAware {
         logger.debug { "AbstractFxmlView initialize" }
         resource = getResource()
         resourceBundle = getResourceBundle(bundleName)
-        fxmlLoader = loadSynchronously(resource, resourceBundle)
     }
 
     /**
@@ -120,6 +119,17 @@ abstract class AbstractFxmlView : ApplicationContextAware {
             throw IllegalStateException("Cannot load $conventionalName", e)
         }
         return loader
+    }
+
+    /**
+     * Ensure fxml loader initialized.
+     */
+    private fun ensureFxmlLoaderInitialized() {
+        if (::fxmlLoader.isInitialized) {
+            return
+        }
+        fxmlLoader = loadSynchronously(resource, resourceBundle)
+        presenterProperty.set(fxmlLoader.getController())
     }
 
     /**
@@ -226,6 +236,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      */
     val view: Parent
         get() {
+            ensureFxmlLoaderInitialized()
             val parent = fxmlLoader.getRoot<Parent>()
             addCSSIfAvailable(parent)
             return parent
@@ -332,7 +343,11 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      * @return the corresponding controller / presenter (usually for a
      * AirhacksView the AirhacksPresenter)
      */
-    val presenter: Any get() = presenterProperty.get()
+    val presenter: Any
+        get() {
+            ensureFxmlLoaderInitialized()
+            return presenterProperty.get()
+        }
 
     /**
      * Does not initialize the view. Only registers the Consumer and waits until
