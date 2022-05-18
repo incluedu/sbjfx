@@ -20,9 +20,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     testImplementation 'org.junit.platform:junit-platform-launcher:1.8.2'
     testImplementation 'org.junit.platform:junit-platform-runner:1.8.2'
-    testImplementation "org.testfx:openjfx-monocle:8u76-b04"
     testImplementation 'org.testfx:testfx-core:4.0.16-alpha'
     testImplementation 'org.testfx:testfx-junit5:4.0.16-alpha'
+    testImplementation 'org.testfx:openjfx-monocle:jdk-11+26'
 }
 
 group = 'net.lustenauer'
@@ -45,7 +45,9 @@ tasks.withType(JavaCompile) {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        jvmArgs += "-Dheadless=true"
+    }
 }
 
 repositories {
