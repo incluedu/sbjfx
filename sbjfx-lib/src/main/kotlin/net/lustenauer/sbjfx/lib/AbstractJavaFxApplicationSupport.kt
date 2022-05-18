@@ -152,7 +152,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
     /**
      * todo check private is ok for this function or not
      */
-    private fun loadDefaultIcons(): Collection<Image> = listOf(
+    fun loadDefaultIcons(): Collection<Image> = listOf(
         loadIcon("/icons/gear_16x16.png"),
         loadIcon("/icons/gear_24x24.png"),
         loadIcon("/icons/gear_36x36.png"),
