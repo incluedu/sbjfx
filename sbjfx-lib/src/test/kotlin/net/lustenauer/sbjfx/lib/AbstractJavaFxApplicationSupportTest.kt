@@ -1,15 +1,16 @@
 package net.lustenauer.sbjfx.lib
 
+import net.lustenauer.sbjfx.lib.jfxtest.AbstractSbjfxTest
 import net.lustenauer.sbjfx.lib.jfxtest.SampleView
 import net.lustenauer.sbjfx.lib.jfxtest.TestApp
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 import org.testfx.api.FxToolkit
 
 
-internal class AbstractJavaFxApplicationSupportTest {
-
-    private lateinit var app: AbstractJavaFxApplicationSupport
+internal class AbstractJavaFxApplicationSupportTest : AbstractSbjfxTest() {
 
     @BeforeEach
     fun init() {
@@ -22,26 +23,9 @@ internal class AbstractJavaFxApplicationSupportTest {
 
     @Test
     @DisplayName("Load default icons")
-    fun loadDefaultIcons() {
+    override fun loadDefaultIcons() {
         val images = app.loadDefaultIcons()
         assertThat(images).hasSize(5)
-    }
-
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun before() {
-            System.setProperty("testfx.robot", "glass")
-            System.setProperty("testfx.headless", "true")
-            System.setProperty("prism.order", "sw")
-            System.setProperty("prism.text", "t2k")
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun after() {
-            System.setProperty("testfx.headless", "false")
-        }
     }
 
 }
