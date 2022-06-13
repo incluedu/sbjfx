@@ -44,7 +44,7 @@ import java.util.function.Consumer
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 abstract class AbstractFxmlView : ApplicationContextAware {
-    private val resource: URL
+    private val resource: URL?
     private val resourceBundle: ResourceBundle?
     private val presenterProperty = SimpleObjectProperty<Any>()
     private val annotation: FXMLView = javaClass.getAnnotation(FXMLView::class.java)
@@ -60,7 +60,12 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      */
     init {
         logger.debug { "AbstractFxmlView initialize" }
-        resource = getResource()
+        resource = try {
+            getResource()
+        } catch (e: Exception) {
+            logger.error { e.message }
+            null
+        }
         resourceBundle = getResourceBundle(bundleName)
     }
 
@@ -70,14 +75,10 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      *
      * @return the URL resource
      */
+    @Throws(ResourceNotFoundException::class)
     private fun getResource(): URL {
         val path = annotation.value.ifEmpty { fxmlPath }
-        val url = javaClass.getResource(path)
-        if (url == null) {
-            logger.error { "Failed to load resource file '$path'" }
-            Platform.exit()
-        }
-        return url as URL
+        return javaClass.getResource(path) ?: throw ResourceNotFoundException("Failed to load resource file '$path'")
     }
 
     /**
@@ -108,15 +109,18 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      * the illegal state exception
      */
     @Throws(IllegalStateException::class)
-    private fun loadSynchronously(resource: URL, bundle: ResourceBundle?): FXMLLoader {
+    private fun loadSynchronously(resource: URL?, bundle: ResourceBundle?): FXMLLoader {
+        val message = "Cannot load '$conventionalName'"
         val loader = FXMLLoader(resource, bundle)
         loader.controllerFactory = Callback { type: Class<*> -> createControllerForType(type) }
         try {
             loader.load<Any>()
         } catch (e: IOException) {
-            throw IllegalStateException("Cannot load $conventionalName", e)
+            logger.error(e) { message }
+            throw IllegalStateException(message, e)
         } catch (e: IllegalStateException) {
-            throw IllegalStateException("Cannot load $conventionalName", e)
+            logger.error(e) { message }
+            throw IllegalStateException(message, e)
         }
         return loader
     }
