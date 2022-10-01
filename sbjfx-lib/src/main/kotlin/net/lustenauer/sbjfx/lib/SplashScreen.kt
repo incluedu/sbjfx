@@ -21,36 +21,36 @@ open class SplashScreen {
     /**
      * Change this for custom splash image of default splash pane
      */
-    var imagePath = DEFAULT_IMAGE_PATH
+    open var imagePath = DEFAULT_IMAGE_PATH
 
     /**
      * Change this for custom style of default splash pane
      *
      * @return empty by default
      */
-    var style = DEFAULT_STYLE
+    open var style = DEFAULT_STYLE
 
     /**
      * Change this for custom header text in default splash pane
      */
-    var headerText = DEFAULT_HEADER_TEXT
+    open var headerText = DEFAULT_HEADER_TEXT
 
     /**
      * Change this for custom footer text in default splash pane
      */
-    var footerText = DEFAULT_FOOTER_TEXT
+    open var footerText = DEFAULT_FOOTER_TEXT
 
     /**
      * Change this for custom content text in default splash pane
      */
-    var contentText = DEFAULT_CONTENT_TEXT
+    open var contentText = DEFAULT_CONTENT_TEXT
 
     /**
      * Customize if the splash screen should be visible at all.
      *
      * @return true by default
      */
-    var visible = true
+    open var visible = true
 
     /**
      * Override this to create your own splash pane parent node.
