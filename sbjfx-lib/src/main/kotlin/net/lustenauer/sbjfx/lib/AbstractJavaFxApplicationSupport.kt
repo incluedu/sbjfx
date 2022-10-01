@@ -13,12 +13,6 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.DECORATED
 import javafx.stage.StageStyle.TRANSPARENT
 import mu.KotlinLogging
-import net.lustenauer.sbjfx.lib.Constant.KEY_APPICONS
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_HEIGHT
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_RESIZABLE
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_STYLE
-import net.lustenauer.sbjfx.lib.Constant.KEY_STAGE_WIDTH
-import net.lustenauer.sbjfx.lib.Constant.KEY_TITLE
 import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication
@@ -34,12 +28,12 @@ import java.util.concurrent.CompletableFuture
  * @author Patric Hollenstein
  */
 abstract class AbstractJavaFxApplicationSupport : Application() {
-    private val defaultIcons: MutableList<Image> = ArrayList()
+    private val defaultIcons: MutableList<Image> = mutableListOf()
     private val splashIsShowing: CompletableFuture<Runnable> = CompletableFuture()
 
     private fun loadIcons(ctx: ConfigurableApplicationContext) {
         try {
-            PropertyReaderHelper[ctx.environment, KEY_APPICONS]
+            PropertyReaderHelper[ctx.environment, KEY_APP_ICONS]
                     .map { icons.add(loadIcon(it)) }
                     .ifEmpty { icons.addAll(defaultIcons) }
         } catch (e: Exception) {
@@ -166,9 +160,17 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
     )
 
     companion object {
+        private const val KEY_TITLE = "javafx.title"
+        private const val KEY_STAGE_WIDTH = "javafx.stage.width"
+        private const val KEY_STAGE_HEIGHT = "javafx.stage.height"
+        private const val KEY_STAGE_RESIZABLE = "javafx.stage.resizable"
+        private const val KEY_STAGE_STYLE = "javafx.stage.style"
+        private const val KEY_APP_ICONS = "javafx.appIcons"
+
+
         lateinit var savedInitialView: Class<out AbstractFxmlView>
         lateinit var splashScreen: SplashScreen
-        private lateinit var applicationContext: ConfigurableApplicationContext
+        lateinit var applicationContext: ConfigurableApplicationContext
 
         private val logger = KotlinLogging.logger { }
         private var savedArgs = arrayOfNulls<String>(0)
