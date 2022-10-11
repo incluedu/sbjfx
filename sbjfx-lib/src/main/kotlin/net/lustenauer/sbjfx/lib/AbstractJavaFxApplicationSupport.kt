@@ -178,10 +178,10 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
 
         private val icons: MutableList<Image> = ArrayList()
         private var errorAction: (t: Throwable) -> Unit = defaultErrorAction()
-        val stage: Stage get() = GUIState.stage
-        val scene: Scene get() = GUIState.scene
-        val appHostServices: HostServices? get() = GUIState.hostServices
-        val systemTray: SystemTray? get() = GUIState.systemTray
+        @JvmStatic val stage: Stage get() = GUIState.stage
+        @JvmStatic val scene: Scene get() = GUIState.scene
+        @JvmStatic val appHostServices: HostServices? get() = GUIState.hostServices
+        @JvmStatic val systemTray: SystemTray? get() = GUIState.systemTray
 
         /**
          * Default error action that shows a message and closes the app.
