@@ -6,6 +6,8 @@ apply plugin: 'application'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'org.openjfx.javafxplugin'
 apply plugin: 'org.jetbrains.dokka'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
@@ -26,7 +28,8 @@ dependencies {
 }
 
 group = 'net.lustenauer'
-version = '0.0.1-SNAPSHOT'
+//archivesBaseName = "sbjfx"
+version = '0.0.1'
 description = 'sbjfx-lib'
 java.sourceCompatibility = JavaVersion.VERSION_11
 
@@ -52,4 +55,65 @@ test {
 
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'net.lustenauer'
+            artifactId = 'sbjfx'
+            version = '0.0.1'
+
+            from components.java
+
+            // create the sign pom artifact
+            pom {
+                name = 'SBJFX'
+                description = 'This is a port of the library springboot-java-fx-support by Felix Roske to Kotlin and JAVAFX11. Information on the original can be found at https://github.com/roskenet/springboot-javafx-support'
+                url = 'https://github.com/incluedu/sbjfx'
+                inceptionYear = '2022'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'incluedu'
+                        name = 'Patric Hollenstein'
+                        email = 'patric.hollenstein@lustenauer.net'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/incluedu/sbjfx.git'
+                    developerConnection = 'scm:git:ssh://github.com/incluedu/sbjfx.git'
+                    url = 'https://github.com/incluedu/sbjfx'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username = project.properties["nexusUsername"]
+                password = project.properties["nexusPassword"]
+            }
+        }
+    }
+
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
