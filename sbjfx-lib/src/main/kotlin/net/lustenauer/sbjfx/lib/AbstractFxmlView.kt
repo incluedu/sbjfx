@@ -159,7 +159,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      * @param modality
      * See `javafx.stage.Modality`.
      */
-    fun showView(window: Window, modality: Modality = Modality.NONE) {
+    fun showView(window: Window, modality: Modality = annotation.modality) {
         if (!isPrimaryStageView && (currentStageModality != modality || stage.owner != window)) {
             GUIState.stage = createStage(modality)
             stage.initOwner(window)
@@ -173,7 +173,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      * @param modality
      * See `javafx.stage.Modality`.
      */
-    fun showView(modality: Modality = Modality.NONE) {
+    fun showView(modality: Modality = annotation.modality) {
         if (!isPrimaryStageView && (currentStageModality != modality)) {
             GUIState.stage = createStage(modality)
         }
@@ -189,7 +189,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      * @param modality
      * See `javafx.stage.Modality`.
      */
-    fun showViewAndWait(window: Window, modality: Modality = Modality.NONE) {
+    fun showViewAndWait(window: Window, modality: Modality = annotation.modality) {
         if (isPrimaryStageView) {
             showView(modality) // this modality will be ignored anyway
             return
@@ -208,7 +208,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      * @param modality
      * See `javafx.stage.Modality`.
      */
-    fun showViewAndWait(modality: Modality = Modality.NONE) {
+    fun showViewAndWait(modality: Modality = annotation.modality) {
         if (isPrimaryStageView) {
             showView(modality) // this modality will be ignored anyway
             return
@@ -330,6 +330,11 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      * Gets the default style for a (un)modal window.
      */
     val defaultStyle: StageStyle get() = StageStyle.valueOf(annotation.stageStyle.uppercase(Locale.getDefault()))
+
+    /**
+     * Gets the default modality for the window, this can be changed with annotation stageModality in FXMLView
+     */
+    val defaultModality: Modality get() = annotation.modality
 
     /**
      * Gets the style sheet name.

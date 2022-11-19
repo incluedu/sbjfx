@@ -1,5 +1,6 @@
 package net.lustenauer.sbjfx.lib.anotations
 
+import javafx.stage.Modality
 import org.springframework.stereotype.Component
 
 /**
@@ -47,5 +48,10 @@ annotation class FXMLView(
      * The style to be applied to the underlying stage
      * when using this view as a modal window.
      */
-    val stageStyle: String = "UTILITY"
+    val stageStyle: String = "UTILITY",
+
+    /**
+     * The modality of the stage (window)
+     */
+    val modality: Modality = Modality.NONE,
 )
