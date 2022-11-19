@@ -134,7 +134,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
      * By default, noop.
      *
      * @param stage can be used to customize the stage before being displayed
-     * @param ctx   represents spring ctx where you can loog for beans.
+     * @param ctx   represents spring ctx where you can look for beans.
      */
     open fun beforeInitialView(stage: Stage, ctx: ConfigurableApplicationContext?) {}
 
