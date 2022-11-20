@@ -45,3 +45,6 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
         GITHUB_USERNAME: ${{ secrets.GPR_USERNAME }}
         GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+        ORG_GRADLE_PROJECT_signingPassword: ''
+        ORG_GRADLE_PROJECT_signingKeyId: 'C20F5B02'
