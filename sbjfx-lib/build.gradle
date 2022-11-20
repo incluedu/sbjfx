@@ -28,8 +28,7 @@ dependencies {
 }
 
 group = 'net.lustenauer'
-//archivesBaseName = "sbjfx"
-version = '0.0.1'
+version = '0.0.2'
 description = 'sbjfx-lib'
 java.sourceCompatibility = JavaVersion.VERSION_11
 
@@ -60,10 +59,6 @@ repositories {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'net.lustenauer'
-            artifactId = 'sbjfx'
-            version = '0.0.1'
-
             from components.java
 
             // create the sign pom artifact
