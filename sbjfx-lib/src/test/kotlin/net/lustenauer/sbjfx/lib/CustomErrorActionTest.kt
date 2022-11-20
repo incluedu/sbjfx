@@ -5,11 +5,13 @@ import net.lustenauer.sbjfx.lib.jfxtest.SampleIncorrectView
 import net.lustenauer.sbjfx.lib.jfxtest.SampleView
 import net.lustenauer.sbjfx.lib.jfxtest.TestApp
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.testfx.api.FxToolkit
 
+@Disabled
 internal class CustomErrorActionTest : AbstractSbjfxTest() {
 
     private lateinit var errorAction: ErrorAction
