@@ -1,8 +1,7 @@
 ## Add to build.gradle
-
 ```
 dependencies {
-    implementation "net.lustenauer:sbjfx:0.0.4"
+    implementation 'net.lustenauer:sbjfx-lib:0.0.3'
 }
 ```
 
