@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component
  * files.
  *
  * @author Felix Roske
+ * @author Patric Hollenstein
  */
 @Component
 @Retention(AnnotationRetention.RUNTIME)
@@ -52,6 +53,10 @@ annotation class FXMLView(
 
     /**
      * The modality of the stage (window)
+     * @see Modality
+     * @see Modality.NONE
+     * @see Modality.WINDOW_MODAL
+     * @see Modality.APPLICATION_MODAL
      */
     val modality: Modality = Modality.NONE,
 )
