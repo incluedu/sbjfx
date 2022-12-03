@@ -11,11 +11,10 @@ tasks.withType(Jar) { it.duplicatesStrategy = DuplicatesStrategy.WARN }
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    implementation "io.github.microutils:kotlin-logging-jvm:2.1.21"
+    implementation "io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion"
+
     implementation project(':sbjfx-lib')
-    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 }
 
 compileKotlin {
@@ -28,5 +27,9 @@ compileKotlin {
 javafx {
     version = "$javafxVersion"
     modules = ['javafx.base', 'javafx.controls', 'javafx.fxml', 'javafx.graphics']
+}
+
+repositories {
+    mavenCentral()
 }
 
