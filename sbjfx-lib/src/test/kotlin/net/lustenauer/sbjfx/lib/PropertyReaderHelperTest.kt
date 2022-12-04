@@ -1,8 +1,6 @@
 package net.lustenauer.sbjfx.lib
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.collection.IsIterableContainingInAnyOrder
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -45,14 +43,14 @@ internal class PropertyReaderHelperTest {
     @Throws(Exception::class)
     fun singleValueTest() {
         val list = PropertyReaderHelper[envSingleEntryMock, "entry"]
-        assertThat(list, IsIterableContainingInAnyOrder.containsInAnyOrder("entry"))
+        assertThat(list).containsExactlyInAnyOrder("entry")
     }
 
     @Test
     @DisplayName("Multiple values")
     fun multipleValuesTest() {
         val list = PropertyReaderHelper[envArrayMock, "entry"]
-        assertThat(list, IsIterableContainingInAnyOrder.containsInAnyOrder("entry_0", "entry_1", "entry_2"))
+        assertThat(list).containsExactlyInAnyOrder("entry_0", "entry_1", "entry_2")
     }
 
     @Test
@@ -60,10 +58,11 @@ internal class PropertyReaderHelperTest {
     fun setIfExistingKeyIsPresentTest() {
         val testObject = TestObject()
         PropertyReaderHelper.setIfPresent(
-            envSingleEntryMock, "stringentry",
-            String::class.java
+            env = envSingleEntryMock,
+            key = "stringentry",
+            type = String::class.java
         ) { theEntryValue: String -> testObject.stringEntry = theEntryValue }
-        assertThat(testObject.stringEntry, CoreMatchers.`is`("entry"))
+        assertThat(testObject.stringEntry).isEqualTo("entry")
     }
 
     @Test
@@ -71,13 +70,13 @@ internal class PropertyReaderHelperTest {
     fun setIfExistingKeyIsNotPresentTest() {
         val testObject = TestObject()
         PropertyReaderHelper.setIfPresent(
-            envSingleEntryMock,
-            "no_entry",
-            String::class.java
-        ) { theEntryValue: String? ->
+            env = envSingleEntryMock,
+            key = "no_entry",
+            type = String::class.java
+        ) { theEntryValue: String ->
             testObject.stringEntry = theEntryValue
         }
-        assertThat(testObject.stringEntry, CoreMatchers.`is`("UNSET"))
+        assertThat(testObject.stringEntry).isEqualTo("UNSET")
     }
 
     @Test
@@ -88,7 +87,6 @@ internal class PropertyReaderHelperTest {
     }
 
     internal class TestObject {
-        var stringEntry: String? = "UNSET"
-        var longEntry = 0L
+        var stringEntry: String = "UNSET"
     }
 }

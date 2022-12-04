@@ -4,7 +4,7 @@ import javafx.application.Platform
 import javafx.stage.Stage
 import net.lustenauer.sbjfx.lib.jfxtest.SampleIncorrectView
 import net.lustenauer.sbjfx.lib.jfxtest.SpringJavaFxTestingBase
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -34,6 +34,6 @@ internal class IncorrectViewTest : SpringJavaFxTestingBase() {
             }
         }
         Thread.sleep(1000) // wait one second
-        assertEquals("Cannot load 'sampleincorrect'", thrown.message)
+        assertThat(thrown.message).isEqualTo("Cannot load 'sampleincorrect'")
     }
 }
