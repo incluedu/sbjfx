@@ -42,7 +42,6 @@ internal class SampleViewTest : SpringJavaFxTestingBase() {
     @DisplayName("Show view given stage")
     fun showViewGivenStageTest() {
         Platform.runLater { sampleView.showView(stage, Modality.NONE) }
-        Thread.sleep(1000)
         WaitForAsyncUtils.waitForFxEvents()
         FxAssert.verifyThat(sampleView.view, NodeMatchers.isVisible())
     }
