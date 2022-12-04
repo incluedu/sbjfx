@@ -2,10 +2,11 @@
 
 ## V0.0.4
 
-* Update Springboot to Version 2.7.6
-* Update Kotlin Logging to Version 3.0.4
+* Update Springboot to version 2.7.6
+* Update Kotlin Logging to version 3.0.4
 * Change development JDK from temurin-11 to temurin-17
-* Update JavaFx to V17.0.2
+* Update JavaFx to version 17.0.2
+* Upgrade Gradle to version 7.6
 
 ## V0.0.3 - 20.11.2022 - Patric Hollenstein
 
