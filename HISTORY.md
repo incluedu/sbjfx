@@ -9,6 +9,7 @@
 * Fix 'AbstractJavaFxApplicationSupportTest'
 * Upgrade Gradle to version 7.6
 * Implement 'SampleViewTest'
+* Implement 'SplashScreenTest'
 
 ## V0.0.3 - 20.11.2022 - Patric Hollenstein
 
