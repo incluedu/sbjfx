@@ -6,6 +6,7 @@
 * Update Kotlin Logging to Version 3.0.4
 * Change development JDK from temurin-11 to temurin-17
 * Update JavaFx to V17.0.2
+* Fix 'AbstractJavaFxApplicationSupportTest'
 
 ## V0.0.3 - 20.11.2022 - Patric Hollenstein
 
