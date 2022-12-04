@@ -8,6 +8,7 @@
 * Update JavaFx to version 17.0.2
 * Fix 'AbstractJavaFxApplicationSupportTest'
 * Upgrade Gradle to version 7.6
+* Implement 'SampleViewTest'
 
 ## V0.0.3 - 20.11.2022 - Patric Hollenstein
 

@@ -227,7 +227,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
         initModality(modality)
         title = defaultTitle
         initStyle(defaultStyle)
-        stage.icons?.let { icons.addAll(it) }
+        this.icons?.let { icons.addAll(it) }
         scene = if (view.scene != null) view.scene else Scene(view)
         return this
     }
