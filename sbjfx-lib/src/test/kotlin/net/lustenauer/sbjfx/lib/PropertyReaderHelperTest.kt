@@ -89,6 +89,6 @@ internal class PropertyReaderHelperTest {
 
     internal class TestObject {
         var stringEntry: String? = "UNSET"
-        var longEntry = java.lang.Long.valueOf(0)
+        var longEntry = 0L
     }
 }
