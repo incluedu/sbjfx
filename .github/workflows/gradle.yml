@@ -38,5 +38,5 @@ jobs:
         with:
           name: reports
           path: |
-            **/build/reports/
+            **/build/reports/ 
             **/build/test-results/
