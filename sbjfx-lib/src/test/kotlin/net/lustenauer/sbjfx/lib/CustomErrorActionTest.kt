@@ -1,5 +1,9 @@
 package net.lustenauer.sbjfx.lib
 
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.mockk
+import io.mockk.verify
 import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.savedInitialView
 import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.setErrorAction
 import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.showInitialView
@@ -8,20 +12,20 @@ import net.lustenauer.sbjfx.lib.jfxtest.SampleIncorrectView
 import net.lustenauer.sbjfx.lib.jfxtest.SampleView
 import net.lustenauer.sbjfx.lib.jfxtest.TestApp
 import org.junit.jupiter.api.*
-import org.mockito.Mockito
 import org.testfx.api.FxToolkit
 
 
 internal class CustomErrorActionTest {
 
-    private lateinit var errorAction: ErrorAction
+    @MockK(relaxed = true)
+    private var errorAction: ErrorAction = mockk<ErrorAction>()
     private lateinit var app: AbstractJavaFxApplicationSupport
 
 
     @BeforeEach
     @Throws(Exception::class)
     fun setup() {
-        errorAction = Mockito.mock(ErrorAction::class.java)
+        every { errorAction.action() } returns Unit
         FxToolkit.registerPrimaryStage()
         app = TestApp()
         savedInitialView = SampleView::class.java
@@ -34,6 +38,8 @@ internal class CustomErrorActionTest {
     @DisplayName("Custom error action is executed")
     fun showInitialViewTest() {
         showInitialView(SampleIncorrectView::class.java)
+        verify(exactly = 1) { errorAction.action() }
+
 //        Mockito.verify(errorAction, Mockito.times(1)).action()
     }
 
