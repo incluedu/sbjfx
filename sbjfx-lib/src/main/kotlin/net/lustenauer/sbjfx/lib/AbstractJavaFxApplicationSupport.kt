@@ -20,8 +20,6 @@ import org.springframework.context.ConfigurableApplicationContext
 import java.awt.SystemTray
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.function.Consumer
 
 
 /**
@@ -52,16 +50,12 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
     @Throws(Exception::class)
     override fun init() {
         // Load in JavaFx Thread and reused by Completable Future, but should not be a big deal.
-        // Provide an executor instead of using default, otherwise spring application will fail to start via JAR(mvn package)
-        val executor = Executors.newSingleThreadExecutor()
         defaultIcons.addAll(loadDefaultIcons())
-
-        CompletableFuture.supplyAsync({ SpringApplication.run(this.javaClass, *savedArgs) }, executor)
+        CompletableFuture.supplyAsync { SpringApplication.run(this.javaClass, *savedArgs) }
             .whenComplete { ctx, throwable ->
                 if (throwable != null) {
                     logger.error(throwable) { "Failed to load spring application context: " }
-                    executor.shutdown()
-                    Platform.runLater { errorAction.accept(throwable) }
+                    Platform.runLater { errorAction(throwable) }
                 } else {
                     Platform.runLater {
                         loadIcons(ctx)
@@ -70,7 +64,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                 }
             }
             .thenAcceptBothAsync(splashIsShowing) { _, closeSplash ->
-                executor.shutdown()
                 Platform.runLater(closeSplash)
             }
     }
@@ -187,7 +180,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
 
 
         private val icons: MutableList<Image> = ArrayList()
-        private var errorAction: Consumer<Throwable> = defaultErrorAction()
+        private var errorAction: (t: Throwable) -> Unit = defaultErrorAction()
 
         @JvmStatic
         val stage: Stage get() = GUIState.stage
@@ -204,19 +197,13 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         /**
          * Default error action that shows a message and closes the app.
          */
-        private fun defaultErrorAction(): Consumer<Throwable> {
-            return Consumer { e: Throwable ->
-//                logger.error { e }
-                val alert = Alert(
-                    AlertType.ERROR,
-                    "Oops! An unrecoverable error occurred.\nPlease contact your software vendor.\n\n" +
-                            "The application will stop now."
-
-                )
-                alert.showAndWait().ifPresent { Platform.exit() }
-            }
+        private fun defaultErrorAction(): (Throwable) -> Unit = {
+            Alert(
+                AlertType.ERROR,
+                "Oops! An unrecoverable error occurred.\nPlease contact your software vendor.\n\n" +
+                        "The application will stop now."
+            ).showAndWait().ifPresent { Platform.exit() }
         }
-
         /**
          * Apply env props to view.
          */
@@ -287,9 +274,9 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                 applyEnvPropsToView()
                 stage.icons.addAll(icons)
                 stage.show()
-            } catch (t: Throwable) {
-                logger.error(t) { "Failed to load application: " }
-                errorAction.accept(t)
+            } catch (throwable: Throwable) {
+                logger.error(throwable) { "Failed to load application: " }
+                errorAction(throwable)
             }
         }
 
@@ -297,10 +284,9 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
          * Extension point to override the error action
          */
         @JvmStatic
-        fun setErrorAction(callback: Consumer<Throwable>) {
+        fun setErrorAction(callback: (throwable: Throwable) -> Unit) {
             errorAction = callback
         }
-
         internal fun isApplicationContextInitialized() = ::applicationContext.isInitialized
     }
 }
