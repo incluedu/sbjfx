@@ -39,8 +39,6 @@ internal class CustomErrorActionTest {
     fun showInitialViewTest() {
         showInitialView(SampleIncorrectView::class.java)
         verify(atLeast = 1, atMost = 2) { errorAction.action() }
-
-//        Mockito.verify(errorAction, Mockito.times(1)).action()
     }
 
     companion object {
