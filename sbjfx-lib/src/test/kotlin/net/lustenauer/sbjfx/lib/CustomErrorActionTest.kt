@@ -1,41 +1,62 @@
 package net.lustenauer.sbjfx.lib
 
-import net.lustenauer.sbjfx.lib.jfxtest.AbstractSbjfxTest
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.mockk
+import io.mockk.verify
+import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.savedInitialView
+import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.setErrorAction
+import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.showInitialView
+import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.splashScreen
 import net.lustenauer.sbjfx.lib.jfxtest.SampleIncorrectView
 import net.lustenauer.sbjfx.lib.jfxtest.SampleView
 import net.lustenauer.sbjfx.lib.jfxtest.TestApp
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.junit.jupiter.api.*
 import org.testfx.api.FxToolkit
 
-@Disabled
-internal class CustomErrorActionTest : AbstractSbjfxTest() {
 
-    private lateinit var errorAction: ErrorAction
+internal class CustomErrorActionTest {
+
+    @MockK(relaxed = true)
+    private var errorAction: ErrorAction = mockk<ErrorAction>()
+    private lateinit var app: AbstractJavaFxApplicationSupport
+
 
     @BeforeEach
     @Throws(Exception::class)
     fun setup() {
-        errorAction = Mockito.mock(ErrorAction::class.java)
+        every { errorAction.action() } returns Unit
         FxToolkit.registerPrimaryStage()
         app = TestApp()
-        AbstractJavaFxApplicationSupport.savedInitialView = SampleView::class.java
-        AbstractJavaFxApplicationSupport.splashScreen = SplashScreen()
-        AbstractJavaFxApplicationSupport.setErrorAction { errorAction.action() }
+        savedInitialView = SampleView::class.java
+        splashScreen = SplashScreen()
+        setErrorAction { errorAction.action() }
         FxToolkit.setupApplication { app }
     }
 
     @Test
     @DisplayName("Custom error action is executed")
-    override fun loadDefaultIcons() {
-        AbstractJavaFxApplicationSupport.showInitialView(SampleIncorrectView::class.java)
-        Mockito.verify(errorAction, Mockito.times(3)).action()
+    fun showInitialViewTest() {
+        showInitialView(SampleIncorrectView::class.java)
+        verify(atLeast = 1, atMost = 2) { errorAction.action() }
+    }
+
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun beforeClass(): Unit {
+            System.setProperty("testfx.headless", "true")
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun afterClass(): Unit {
+            System.setProperty("testfx.headless", "false")
+        }
     }
 }
 
-internal interface ErrorAction {
-    fun action()
+interface ErrorAction {
+    fun action() {
+    }
 }

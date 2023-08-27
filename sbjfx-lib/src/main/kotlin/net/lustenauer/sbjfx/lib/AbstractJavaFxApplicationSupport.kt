@@ -21,6 +21,7 @@ import java.awt.SystemTray
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
+
 /**
  * The Class AbstractJavaFxApplicationSupport.
  *
@@ -34,8 +35,8 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
     private fun loadIcons(ctx: ConfigurableApplicationContext) {
         try {
             PropertyReaderHelper[ctx.environment, KEY_APP_ICONS]
-                    .map { icons.add(loadIcon(it)) }
-                    .ifEmpty { icons.addAll(defaultIcons) }
+                .map { icons.add(loadIcon(it)) }
+                .ifEmpty { icons.addAll(defaultIcons) }
         } catch (e: Exception) {
             logger.error(e) { "Failed to load icons: " }
         }
@@ -51,18 +52,20 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         // Load in JavaFx Thread and reused by Completable Future, but should not be a big deal.
         defaultIcons.addAll(loadDefaultIcons())
         CompletableFuture.supplyAsync { SpringApplication.run(this.javaClass, *savedArgs) }
-                .whenComplete { ctx, throwable ->
-                    if (throwable != null) {
-                        logger.error(throwable) { "Failed to load spring application context: " }
-                        Platform.runLater { errorAction(throwable) }
-                    } else {
-                        Platform.runLater {
-                            loadIcons(ctx)
-                            launchApplicationView(ctx)
-                        }
+            .whenComplete { ctx, throwable ->
+                if (throwable != null) {
+                    logger.error(throwable) { "Failed to load spring application context: " }
+                    Platform.runLater { errorAction(throwable) }
+                } else {
+                    Platform.runLater {
+                        loadIcons(ctx)
+                        launchApplicationView(ctx)
                     }
                 }
-                .thenAcceptBothAsync(splashIsShowing) { _, closeSplash -> Platform.runLater(closeSplash) }
+            }
+            .thenAcceptBothAsync(splashIsShowing) { _, closeSplash ->
+                Platform.runLater(closeSplash)
+            }
     }
 
     /*
@@ -178,10 +181,18 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
 
         private val icons: MutableList<Image> = ArrayList()
         private var errorAction: (t: Throwable) -> Unit = defaultErrorAction()
-        @JvmStatic val stage: Stage get() = GUIState.stage
-        @JvmStatic val scene: Scene get() = GUIState.scene
-        @JvmStatic val appHostServices: HostServices? get() = GUIState.hostServices
-        @JvmStatic val systemTray: SystemTray? get() = GUIState.systemTray
+
+        @JvmStatic
+        val stage: Stage get() = GUIState.stage
+
+        @JvmStatic
+        val scene: Scene get() = GUIState.scene
+
+        @JvmStatic
+        val appHostServices: HostServices? get() = GUIState.hostServices
+
+        @JvmStatic
+        val systemTray: SystemTray? get() = GUIState.systemTray
 
         /**
          * Default error action that shows a message and closes the app.
@@ -193,7 +204,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                         "The application will stop now."
             ).showAndWait().ifPresent { Platform.exit() }
         }
-
         /**
          * Apply env props to view.
          */
@@ -256,14 +266,17 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         @JvmStatic
         fun showInitialView(newView: Class<out AbstractFxmlView>) {
             try {
+                if (!isApplicationContextInitialized()) {
+
+                }
                 val view = applicationContext.getBean(newView)
                 view.initFirstView()
                 applyEnvPropsToView()
                 stage.icons.addAll(icons)
                 stage.show()
-            } catch (t: Throwable) {
-                logger.error(t) { "Failed to load application: " }
-                errorAction(t)
+            } catch (throwable: Throwable) {
+                logger.error(throwable) { "Failed to load application: " }
+                errorAction(throwable)
             }
         }
 
@@ -271,10 +284,9 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
          * Extension point to override the error action
          */
         @JvmStatic
-        fun setErrorAction(callback: (t: Throwable) -> Unit) {
+        fun setErrorAction(callback: (throwable: Throwable) -> Unit) {
             errorAction = callback
         }
-
         internal fun isApplicationContextInitialized() = ::applicationContext.isInitialized
     }
 }
