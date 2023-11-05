@@ -176,7 +176,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         lateinit var applicationContext: ConfigurableApplicationContext
 
         private val logger = KotlinLogging.logger { }
-        private var savedArgs = arrayOfNulls<String>(0)
+        private var savedArgs = emptyArray<String>()
 
 
         private val icons: MutableList<Image> = ArrayList()
@@ -232,7 +232,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
          * @param view     the view
          * @param args     the args
          */
-        fun launch(appClass: Class<out Application>, view: Class<out AbstractFxmlView>, args: Array<String?>) =
+        fun launch(appClass: Class<out Application>, view: Class<out AbstractFxmlView>, args: Array<String>) =
             launch(appClass, view, SplashScreen(), args)
 
         /**
@@ -243,7 +243,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
             appClass: Class<out Application>,
             view: Class<out AbstractFxmlView>,
             splashScreen: SplashScreen?,
-            args: Array<String?>
+            args: Array<String>
         ) {
             savedInitialView = view
             savedArgs = args
@@ -266,9 +266,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         @JvmStatic
         fun showInitialView(newView: Class<out AbstractFxmlView>) {
             try {
-                if (!isApplicationContextInitialized()) {
-
-                }
                 val view = applicationContext.getBean(newView)
                 view.initFirstView()
                 applyEnvPropsToView()
