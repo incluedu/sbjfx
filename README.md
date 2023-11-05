@@ -1,8 +1,15 @@
 ## Add to build.gradle
 
+Gradle
 ```
 dependencies {
-    implementation "net.lustenauer:sbjfx:0.0.5"
+    implementation "net.lustenauer:sbjfx-lib:0.0.5"
+}
+```
+Gradle (Kotlin)
+```
+dependencies {
+    implementation("net.lustenauer:sbjfx-lib:0.0.5")
 }
 ```
 
