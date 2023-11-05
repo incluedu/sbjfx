@@ -27,7 +27,7 @@ dependencies {
 }
 
 group = 'net.lustenauer'
-version = '0.0.6'
+version = '0.0.7'
 description = 'sbjfx-lib'
 java.sourceCompatibility = JavaVersion.VERSION_11
 
