@@ -2,7 +2,7 @@
 
 ```
 dependencies {
-    implementation "net.lustenauer:sbjfx:0.0.4"
+    implementation "net.lustenauer:sbjfx:0.0.5"
 }
 ```
 
