@@ -3,13 +3,13 @@
 Gradle
 ```
 dependencies {
-    implementation "net.lustenauer:sbjfx-lib:0.0.5"
+    implementation "net.lustenauer:sbjfx-lib:0.0.7"
 }
 ```
 Gradle (Kotlin)
 ```
 dependencies {
-    implementation("net.lustenauer:sbjfx-lib:0.0.5")
+    implementation("net.lustenauer:sbjfx-lib:0.0.7")
 }
 ```
 
