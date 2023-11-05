@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 @SpringBootApplication
 open class Application : AbstractJavaFxApplicationSupport()
 
-fun main(args: Array<String?>) {
+fun main(args: Array<String>) {
     // use a custom error action
     setErrorAction(customErrorAction())
 
