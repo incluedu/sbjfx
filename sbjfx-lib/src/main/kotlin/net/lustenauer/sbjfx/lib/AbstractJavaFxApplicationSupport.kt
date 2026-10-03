@@ -79,18 +79,23 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         GUIState.hostServices = hostServices
 
         with(Stage(TRANSPARENT)) {
-            if (splashScreen.visible) {
-                scene = Scene(splashScreen.parent, Color.TRANSPARENT)
-                beforeShowingSplash(this)
-                show()
-            }
-
-            splashIsShowing.complete(Runnable {
-                showInitialView()
-                if (splashScreen.visible) {
-                    close()
+            if (splashScreen == null) {
+                splashIsShowing.complete(Runnable { showInitialView() })
+                return@with
+            } else {
+                if (splashScreen!!.visible) {
+                    scene = Scene(splashScreen!!.parent, Color.TRANSPARENT)
+                    beforeShowingSplash(this)
+                    show()
                 }
-            })
+
+                splashIsShowing.complete(Runnable {
+                    showInitialView()
+                    if (splashScreen!!.visible) {
+                        close()
+                    }
+                })
+            }
         }
     }
 
@@ -172,7 +177,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
 
 
         lateinit var savedInitialView: Class<out AbstractFxmlView>
-        lateinit var splashScreen: SplashScreen
+        var splashScreen: SplashScreen? = null
         lateinit var applicationContext: ConfigurableApplicationContext
 
         private val logger = KotlinLogging.logger { }
@@ -204,6 +209,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                         "The application will stop now."
             ).showAndWait().ifPresent { Platform.exit() }
         }
+
         /**
          * Apply env props to view.
          */
@@ -284,6 +290,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         fun setErrorAction(callback: (throwable: Throwable) -> Unit) {
             errorAction = callback
         }
+
         internal fun isApplicationContextInitialized() = ::applicationContext.isInitialized
     }
 }
