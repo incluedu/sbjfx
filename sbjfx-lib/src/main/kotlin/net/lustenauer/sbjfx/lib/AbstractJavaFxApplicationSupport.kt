@@ -11,14 +11,12 @@ import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.stage.Stage
 import javafx.stage.StageStyle
-import javafx.stage.StageStyle.DECORATED
 import javafx.stage.StageStyle.TRANSPARENT
 import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import java.awt.SystemTray
-import java.util.*
 import java.util.concurrent.CompletableFuture
 
 
@@ -79,8 +77,17 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         GUIState.hostServices = hostServices
 
         with(Stage(TRANSPARENT)) {
+            val launchInitialView = Runnable {
+                val initialView = savedInitialView
+                if (initialView != null) {
+                    showInitialView(initialView)
+                } else {
+                    logger.error { "savedInitialView ist null! Die Anwendung wurde vermutlich nicht über launch() gestartet." }
+                }
+            }
+
             if (splashScreen == null) {
-                splashIsShowing.complete(Runnable { showInitialView() })
+                splashIsShowing.complete(launchInitialView)
                 return@with
             } else {
                 if (splashScreen!!.visible) {
@@ -90,27 +97,13 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                 }
 
                 splashIsShowing.complete(Runnable {
-                    showInitialView()
+                    launchInitialView.run()
                     if (splashScreen!!.visible) {
                         close()
                     }
                 })
             }
         }
-    }
-
-    /**
-     * Show initial view.
-     */
-    private fun showInitialView() {
-        val stageStyle = applicationContext.environment.getProperty(KEY_STAGE_STYLE)
-        if (stageStyle != null) {
-            stage.initStyle(StageStyle.valueOf(stageStyle.uppercase(Locale.getDefault())))
-        } else {
-            stage.initStyle(DECORATED)
-        }
-        beforeInitialView(stage, applicationContext)
-        showInitialView(savedInitialView)
     }
 
     /**
@@ -176,7 +169,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         private const val KEY_APP_ICONS = "javafx.appIcons"
 
 
-        lateinit var savedInitialView: Class<out AbstractFxmlView>
+        var savedInitialView: Class<out AbstractFxmlView>? = null
         var splashScreen: SplashScreen? = null
         lateinit var applicationContext: ConfigurableApplicationContext
 
@@ -264,11 +257,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
             launch(appClass, *args)
         }
 
-        /**
-         * Show view.
-         *
-         * @param newView the new view
-         */
         @JvmStatic
         fun showInitialView(newView: Class<out AbstractFxmlView>) {
             try {
