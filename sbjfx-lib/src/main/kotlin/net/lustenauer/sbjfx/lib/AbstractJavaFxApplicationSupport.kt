@@ -1,5 +1,6 @@
 package net.lustenauer.sbjfx.lib
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.application.Application
 import javafx.application.HostServices
 import javafx.application.Platform
@@ -12,7 +13,6 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle
 import javafx.stage.StageStyle.DECORATED
 import javafx.stage.StageStyle.TRANSPARENT
-import mu.KotlinLogging
 import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication

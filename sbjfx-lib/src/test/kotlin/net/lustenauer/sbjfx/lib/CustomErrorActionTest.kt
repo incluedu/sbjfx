@@ -8,9 +8,9 @@ import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.saved
 import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.setErrorAction
 import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.showInitialView
 import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.splashScreen
-import net.lustenauer.sbjfx.lib.jfxtest.SampleIncorrectView
 import net.lustenauer.sbjfx.lib.jfxtest.SampleView
 import net.lustenauer.sbjfx.lib.jfxtest.TestApp
+import net.lustenauer.sbjfx.lib.jfxtest.invalid.SampleIncorrectView
 import org.junit.jupiter.api.*
 import org.testfx.api.FxToolkit
 

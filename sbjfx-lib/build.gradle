@@ -20,7 +20,6 @@ dependencies {
 
     // Test-Bibliotheken aktualisiert für Spring Boot 3 / Jakarta
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-    testImplementation 'org.slf4j:slf4j-simple:2.0.12'
     testImplementation 'org.assertj:assertj-core:3.25.3'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'

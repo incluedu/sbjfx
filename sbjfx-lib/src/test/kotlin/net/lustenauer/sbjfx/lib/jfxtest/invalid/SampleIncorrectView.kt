@@ -1,4 +1,4 @@
-package net.lustenauer.sbjfx.lib.jfxtest
+package net.lustenauer.sbjfx.lib.jfxtest.invalid
 
 import net.lustenauer.sbjfx.lib.AbstractFxmlView
 import net.lustenauer.sbjfx.lib.anotations.FXMLView
