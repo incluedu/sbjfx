@@ -8,12 +8,18 @@ import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.launc
 import net.lustenauer.sbjfx.lib.AbstractJavaFxApplicationSupport.Companion.setErrorAction
 import net.lustenauer.sbjfx.lib.SplashScreen
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import java.util.logging.Level
+import java.util.logging.Logger
 
 @SpringBootApplication
 open class Application : AbstractJavaFxApplicationSupport()
 
 fun main(args: Array<String>) {
-    // use a custom error action
+    try {
+        Logger.getLogger("com.sun.javafx.application.PlatformImpl").level = Level.OFF
+    } catch (e: Exception) {
+    }
+
     setErrorAction(customErrorAction())
 
     launch(
@@ -34,7 +40,3 @@ fun customErrorAction(): (t: Throwable) -> Unit = {
         "Error:= ${it.localizedMessage} \n\n" + "The application will stop now."
     ).showAndWait().ifPresent { Platform.exit() }
 }
-
-
-
-
