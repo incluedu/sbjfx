@@ -1,19 +1,24 @@
 ## Add to build.gradle
 
 Gradle
-```
+```groovy
 dependencies {
-    implementation "net.lustenauer:sbjfx-lib:0.0.7"
+    // Ab v0.2.0 für Java 21 & Spring Boot 3.x
+    implementation "net.lustenauer:sbjfx-lib:0.2.0-SNAPSHOT"
 }
 ```
+
 Gradle (Kotlin)
-```
+```kotlin
 dependencies {
-    implementation("net.lustenauer:sbjfx-lib:0.0.7")
+    // Ab v0.2.0 für Java 21 & Spring Boot 3.x
+    implementation("net.lustenauer:sbjfx-lib:0.2.0-SNAPSHOT")
 }
 ```
 
 # sbjfx (springboot-javafx-support)
 
-This is a port of the library **springboot-java-fx-support** by **Felix Roske** to Kotlin and JAVAFX11.
+This is a port of the library **springboot-java-fx-support** by **Felix Roske** to Kotlin, **Java 21 (LTS)**, and **JavaFX 21**.
 Information on the original can be found at https://github.com/roskenet/springboot-javafx-support
+
+> ⚠️ **Requirements Notice:** Starting from version `0.2.0`, this library targets **Jakarta EE 10**, **Spring Boot 3.x**, and **Java 21** or newer. For older Java 11/17 or Spring Boot 2.x projects, please use version `0.0.7`.
