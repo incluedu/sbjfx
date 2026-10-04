@@ -11,94 +11,99 @@ import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.stage.Stage
 import javafx.stage.StageStyle
-import javafx.stage.StageStyle.TRANSPARENT
-import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import java.awt.SystemTray
 import java.util.concurrent.CompletableFuture
 
-
 /**
- * The Class AbstractJavaFxApplicationSupport.
+ * Abstract base class providing core bootstrap logic to bridge the lifecycles
+ * of a Spring Boot application context and the JavaFX UI toolkit runtime.
  *
  * @author Felix Roske
  * @author Patric Hollenstein
  */
+@Suppress("unused")
 abstract class AbstractJavaFxApplicationSupport : Application() {
     private val defaultIcons: MutableList<Image> = mutableListOf()
     private val splashIsShowing: CompletableFuture<Runnable> = CompletableFuture()
 
+    /**
+     * Resolves and loads application icon resources from the current environment context.
+     */
     private fun loadIcons(ctx: ConfigurableApplicationContext) {
-        try {
-            PropertyReaderHelper[ctx.environment, KEY_APP_ICONS]
-                .map { icons.add(loadIcon(it)) }
-                .ifEmpty { icons.addAll(defaultIcons) }
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to load icons: " }
+        runCatching {
+            val configuredIcons = PropertyReaderHelper[ctx.environment, KEY_APP_ICONS]
+            if (configuredIcons.isNotEmpty()) {
+                configuredIcons.forEach { iconPath -> icons.add(loadIcon(iconPath)) }
+            } else {
+                icons.addAll(defaultIcons)
+            }
+        }.onFailure { e ->
+            logger.error(e) { "Failed to properly load application icons: ${e.message}" }
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javafx.application.Application#init()
+    /**
+     * Initializer hook invoked by the JavaFX launcher thread.
+     * Asynchronously starts the Spring Boot context.
      */
     @Throws(Exception::class)
     override fun init() {
-        // Load in JavaFx Thread and reused by Completable Future, but should not be a big deal.
         defaultIcons.addAll(loadDefaultIcons())
-        CompletableFuture.supplyAsync { SpringApplication.run(this.javaClass, *savedArgs) }
-            .whenComplete { ctx, throwable ->
-                if (throwable != null) {
-                    logger.error(throwable) { "Failed to load spring application context: " }
-                    Platform.runLater { errorAction(throwable) }
-                } else {
-                    Platform.runLater {
-                        loadIcons(ctx)
-                        launchApplicationView(ctx)
+
+        CompletableFuture.supplyAsync {
+            SpringApplication.run(this.javaClass, *savedArgs)
+        }.whenComplete { ctx: ConfigurableApplicationContext?, throwable: Throwable? ->
+            if (throwable != null) {
+                logger.error(throwable) { "Failed to load Spring application context: " }
+                Platform.runLater { errorAction(throwable) }
+            } else {
+                Platform.runLater {
+                    ctx?.let {
+                        loadIcons(it)
+                        launchApplicationView(it)
                     }
                 }
             }
-            .thenAcceptBothAsync(splashIsShowing) { _, closeSplash ->
-                Platform.runLater(closeSplash)
-            }
+        }.thenAcceptBothAsync(splashIsShowing) { _, closeSplash ->
+            Platform.runLater(closeSplash)
+        }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javafx.application.Application#start(javafx.stage.Stage)
+    /**
+     * Entry point invoked when the JavaFX toolkit initializes the primary window [Stage].
      */
     @Throws(Exception::class)
     override fun start(stage: Stage) {
         GUIState.stage = stage
         GUIState.hostServices = hostServices
 
-        with(Stage(TRANSPARENT)) {
+        with(Stage(StageStyle.TRANSPARENT)) {
             val launchInitialView = Runnable {
                 val initialView = savedInitialView
                 if (initialView != null) {
                     showInitialView(initialView)
                 } else {
-                    logger.error { "savedInitialView ist null! Die Anwendung wurde vermutlich nicht über launch() gestartet." }
+                    logger.error { "savedInitialView is null! The application was likely not launched via the support bootstrap." }
                 }
             }
 
-            if (splashScreen == null) {
+            val currentSplash = splashScreen
+            if (currentSplash == null) {
                 splashIsShowing.complete(launchInitialView)
                 return@with
             } else {
-                if (splashScreen!!.visible) {
-                    scene = Scene(splashScreen!!.parent, Color.TRANSPARENT)
+                if (currentSplash.visible) {
+                    scene = Scene(currentSplash.parent, Color.TRANSPARENT)
                     beforeShowingSplash(this)
                     show()
                 }
 
                 splashIsShowing.complete(Runnable {
                     launchInitialView.run()
-                    if (splashScreen!!.visible) {
+                    if (currentSplash.visible) {
                         close()
                     }
                 })
@@ -107,45 +112,36 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
     }
 
     /**
-     * Launch application view.
+     * Sets the active initialized Spring application context instance.
      */
     private fun launchApplicationView(ctx: ConfigurableApplicationContext) {
         applicationContext = ctx
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javafx.application.Application#stop()
+    /**
+     * Lifecycle shutdown hook. Ensures the Spring Boot context closes gracefully when JavaFX exits.
      */
     @Throws(Exception::class)
     override fun stop() {
         super.stop()
-        if (isApplicationContextInitialized()) applicationContext.close()
+        if (isApplicationContextInitialized()) {
+            applicationContext.close()
+        }
     }
 
     /**
-     * Gets called after full initialization of Spring application context
-     * and JavaFX platform right before the initial view is shown.
-     * Override this method as a hook to add special code for your app. Especially meant to
-     * add AWT code to add a system tray icon and behavior by calling
-     * GUIState.getSystemTray() and modifying it accordingly.
-     *
-     *
-     * By default, noop.
-     *
-     * @param stage can be used to customize the stage before being displayed
-     * @param ctx   represents spring ctx where you can look for beans.
+     * Hook method triggered right before the initial view is displayed.
+     * Override this to append custom operations (e.g., AWT SystemTray setups).
      */
     open fun beforeInitialView(stage: Stage, ctx: ConfigurableApplicationContext?) {}
 
     /**
-     * Extension point called before show splash screen
+     * Hook method triggered immediately before the splash screen stage is shown.
      */
     open fun beforeShowingSplash(splashStage: Stage) {}
 
     /**
-     * todo check private is ok for this function or not
+     * Populates the internal fallback system icon set.
      */
     fun loadDefaultIcons(): Collection<Image> = listOf(
         loadIcon("/icons/gear_16x16.png"),
@@ -155,19 +151,21 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         loadIcon("/icons/gear_64x64.png")
     )
 
-    private fun loadIcon(name: String): Image = Image(
-        javaClass.getResource(name)?.toExternalForm()
-            ?: throw ResourceNotFoundException("cannot find resource $name")
-    )
+    /**
+     * Helper to load and format a raw graphics image resource asset.
+     */
+    private fun loadIcon(name: String): Image {
+        val resourceUrl = javaClass.getResource(name)?.toExternalForm()
+            ?: throw ResourceNotFoundException("Cannot find requested icon asset resource at path '$name'")
+        return Image(resourceUrl)
+    }
 
     companion object {
         private const val KEY_TITLE = "javafx.title"
         private const val KEY_STAGE_WIDTH = "javafx.stage.width"
         private const val KEY_STAGE_HEIGHT = "javafx.stage.height"
         private const val KEY_STAGE_RESIZABLE = "javafx.stage.resizable"
-        private const val KEY_STAGE_STYLE = "javafx.stage.style"
         private const val KEY_APP_ICONS = "javafx.appIcons"
-
 
         var savedInitialView: Class<out AbstractFxmlView>? = null
         var splashScreen: SplashScreen? = null
@@ -175,7 +173,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
 
         private val logger = KotlinLogging.logger { }
         private var savedArgs = emptyArray<String>()
-
 
         private val icons: MutableList<Image> = ArrayList()
         private var errorAction: (t: Throwable) -> Unit = defaultErrorAction()
@@ -193,49 +190,42 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         val systemTray: SystemTray? get() = GUIState.systemTray
 
         /**
-         * Default error action that shows a message and closes the app.
+         * Default error action fallback that displays a graphical error dialog and exits the platform execution context.
          */
         private fun defaultErrorAction(): (Throwable) -> Unit = {
             Alert(
                 AlertType.ERROR,
-                "Oops! An unrecoverable error occurred.\nPlease contact your software vendor.\n\n" +
-                        "The application will stop now."
+                "Oops! An unrecoverable error occurred.\nPlease contact your software vendor.\n\nThe application will stop now."
             ).showAndWait().ifPresent { Platform.exit() }
         }
 
         /**
-         * Apply env props to view.
+         * Dynamically reads and applies system environment properties configuration to the primary view window [Stage].
          */
         private fun applyEnvPropsToView() {
             val env = applicationContext.environment
-            setIfPresent(env, KEY_TITLE, String::class.java) { stage.title = it }
-            setIfPresent(env, KEY_STAGE_WIDTH, Double::class.java) { stage.width = it }
-            setIfPresent(env, KEY_STAGE_HEIGHT, Double::class.java) { stage.height = it }
-            setIfPresent(env, KEY_STAGE_RESIZABLE, Boolean::class.java) { stage.isResizable = it }
+
+            PropertyReaderHelper.setIfPresent(env, KEY_TITLE, String::class.java) { stage.title = it }
+            PropertyReaderHelper.setIfPresent(env, KEY_STAGE_WIDTH, Double::class.java) { stage.width = it }
+            PropertyReaderHelper.setIfPresent(env, KEY_STAGE_HEIGHT, Double::class.java) { stage.height = it }
+            PropertyReaderHelper.setIfPresent(env, KEY_STAGE_RESIZABLE, Boolean::class.java) { stage.isResizable = it }
         }
 
         /**
-         * Sets the title. Allows overwriting values applied during construction at
-         * a later time.
-         *
-         * @param title the new title
+         * Overwrites the window title dynamically at a later stage lifecycle execution point.
          */
         protected fun setTitle(title: String?) {
             stage.title = title
         }
 
         /**
-         * Launch app.
-         *
-         * @param appClass the app class
-         * @param view     the view
-         * @param args     the args
+         * Main launch hook variant that provisions a standard default splash window instance context.
          */
         fun launch(appClass: Class<out Application>, view: Class<out AbstractFxmlView>, args: Array<String>) =
             launch(appClass, view, SplashScreen(), args)
 
         /**
-         * todo doc is missing
+         * Entry framework method that triggers the initialization sequence for both JavaFX and the Spring environment.
          */
         @JvmStatic
         fun launch(
@@ -246,33 +236,33 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         ) {
             savedInitialView = view
             savedArgs = args
-            if (splashScreen != null) {
-                Companion.splashScreen = splashScreen
-            } else {
-                Companion.splashScreen = SplashScreen()
-            }
+            Companion.splashScreen = splashScreen ?: SplashScreen()
+
             if (SystemTray.isSupported()) {
                 GUIState.systemTray = SystemTray.getSystemTray()
             }
             launch(appClass, *args)
         }
 
+        /**
+         * Instructs the ApplicationContext environment to resolve the designated view bean instance and display it.
+         */
         @JvmStatic
         fun showInitialView(newView: Class<out AbstractFxmlView>) {
-            try {
+            runCatching {
                 val view = applicationContext.getBean(newView)
                 view.initFirstView()
                 applyEnvPropsToView()
                 stage.icons.addAll(icons)
                 stage.show()
-            } catch (throwable: Throwable) {
-                logger.error(throwable) { "Failed to load application: " }
+            }.onFailure { throwable ->
+                logger.error(throwable) { "Failed to properly bootstrap and load initial application view: ${throwable.message}" }
                 errorAction(throwable)
             }
         }
 
         /**
-         * Extension point to override the error action
+         * Allows providing an extension callback method hook to customize behavior in case an unhandled lifecycle exception is caught.
          */
         @JvmStatic
         fun setErrorAction(callback: (throwable: Throwable) -> Unit) {

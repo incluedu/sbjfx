@@ -8,3 +8,11 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.1.0' apply(false)
     id 'maven-publish'
 }
+
+subprojects {
+    plugins.withType(JavaPlugin).configureEach {
+        dependencies {
+            compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+        }
+    }
+}

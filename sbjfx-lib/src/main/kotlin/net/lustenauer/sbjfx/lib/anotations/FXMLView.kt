@@ -1,12 +1,13 @@
 package net.lustenauer.sbjfx.lib.anotations
 
 import javafx.stage.Modality
+import org.springframework.core.annotation.AliasFor
 import org.springframework.stereotype.Component
 
 /**
- * The annotation [FXMLView] indicates a class to be used in the context
- * of an JavaFX view. Such classes are used in combination with fxml markup
- * files.
+ * Stereotype annotation indicating that a class represents a JavaFX view configuration bean.
+ * Seamlessly integrates FXML layouts, styling stylesheets, and localized resource bundles
+ * into the Spring dependency injection container.
  *
  * @author Felix Roske
  * @author Patric Hollenstein
@@ -14,49 +15,42 @@ import org.springframework.stereotype.Component
 @Component
 @Retention(AnnotationRetention.RUNTIME)
 annotation class FXMLView(
+
     /**
-     * Value refers to a relative path from where to load a certain fxml file.
-     *
-     * @return the relative file path of a views fxml file.
+     * The explicit Spring bean name. Aliased directly to [Component.value]
+     * to ensure full compatibility with Spring Boot 3 framework standards.
      */
+    @get:AliasFor(annotation = Component::class, attribute = "value")
     val value: String = "",
+
     /**
-     * Css files to be used together with this view.
-     *
-     * @return the string[] listing all css files.
+     * Local CSS stylesheets to be applied together with this specific view layout hierarchy.
      */
     val css: Array<String> = [],
+
     /**
-     * Resource bundle to be used with this view.
-     *
-     * @return the string of such resource bundle.
+     * The classpath descriptor linking a custom resource bundle containing localized strings for this view.
      */
     val bundle: String = "",
+
     /**
-     * The encoding that will be sued when reading the [.bundle] file.
-     * The default encoding is ISO-8859-1.
-     *
-     * @return  the encoding to use when reading the resource bundle
+     * The character encoding format applied when reading the specified configuration [bundle].
+     * Defaults to the classic standard ISO-8859-1 layout block.
      */
     val encoding: String = "ISO-8859-1",
+
     /**
-     * The default title for this view for modal.
-     *
-     * @return The default title string.
+     * The window title string displayed on the frame container when active.
      */
     val title: String = "",
+
     /**
-     * The style to be applied to the underlying stage
-     * when using this view as a modal window.
+     * The graphical stage layout formatting style applied when spawned as a window frame (e.g., "UTILITY", "DECORATED").
      */
     val stageStyle: String = "UTILITY",
 
     /**
-     * The modality of the stage (window)
-     * @see Modality
-     * @see Modality.NONE
-     * @see Modality.WINDOW_MODAL
-     * @see Modality.APPLICATION_MODAL
+     * Configures window modal blocking behavior strategies using JavaFX standard modality models.
      */
-    val modality: Modality = Modality.NONE,
+    val modality: Modality = Modality.NONE
 )

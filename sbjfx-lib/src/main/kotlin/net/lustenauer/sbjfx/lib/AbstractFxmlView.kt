@@ -16,7 +16,6 @@ import net.lustenauer.sbjfx.lib.anotations.FXMLView
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-import java.io.IOException
 import java.net.URL
 import java.nio.charset.Charset
 import java.util.*
@@ -26,16 +25,10 @@ import java.util.function.Consumer
 /**
  * Base class for fxml-based view classes.
  *
- * It is derived from Adam Bien's
- * [afterburner.fx](http://afterburner.adam-bien.com/) project.
- *
- *
- * [AbstractFxmlView] is a stripped down version of [FXMLView](https://github.com/AdamBien/afterburner.fx/blob/02f25fdde9629fcce50ea8ace5dec4f802958c8d/src/main/java/com/airhacks/afterburner/views/FXMLView.java) that provides DI for Java FX Controllers via Spring.
- *
- *
+ * It is derived from Adam Bien's [afterburner.fx](http://afterburner.adam-bien.com/) project.
+ * [AbstractFxmlView] provides DI for Java FX Controllers via Spring.
  *
  * Supports annotation driven creation of FXML based view beans with [FXMLView]
- *
  *
  * @author Thomas Darimont
  * @author Felix Roske
@@ -47,7 +40,7 @@ abstract class AbstractFxmlView : ApplicationContextAware {
     private val resource: URL?
     private val resourceBundle: ResourceBundle?
     private val presenterProperty = SimpleObjectProperty<Any>()
-    private val annotation: FXMLView = javaClass.getAnnotation(FXMLView::class.java)
+    private val annotation: FXMLView? = javaClass.getAnnotation(FXMLView::class.java)
     private val fxmlRoot = PropertyReaderHelper.determineFilePathFromPackageName(javaClass)
     private lateinit var fxmlLoader: FXMLLoader
     private lateinit var applicationContext: ApplicationContext
@@ -60,12 +53,9 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      */
     init {
         logger.debug { "AbstractFxmlView initialize" }
-        resource = try {
-            getResource()
-        } catch (e: Exception) {
-            logger.error { e.message }
-            null
-        }
+        resource = runCatching { getResource() }
+            .onFailure { e -> logger.error(e) { "Failed to determine resource for FXML view: ${e.message}" } }
+            .getOrNull()
         resourceBundle = getResourceBundle(bundleName)
     }
 
@@ -77,15 +67,15 @@ abstract class AbstractFxmlView : ApplicationContextAware {
      */
     @Throws(ResourceNotFoundException::class)
     private fun getResource(): URL {
-        val path = annotation.value.ifEmpty { fxmlPath }
-        return javaClass.getResource(path) ?: throw ResourceNotFoundException("Failed to load resource file '$path'")
+        val path = annotation?.value?.ifEmpty { fxmlPath } ?: fxmlPath
+        return javaClass.getResource(path)
+            ?: throw ResourceNotFoundException("Failed to load resource file '$path'")
     }
 
     /**
      * Creates the controller for type.
      *
-     * @param type
-     * the type
+     * @param type the type
      * @return the object
      */
     private fun createControllerForType(type: Class<*>): Any {
@@ -96,70 +86,58 @@ abstract class AbstractFxmlView : ApplicationContextAware {
         this.applicationContext = applicationContext
     }
 
-
     /**
-     * Load synchronously.
+     * Loads the FXML resource synchronously and links it to the Spring-managed controller.
      *
-     * @param resource
-     * the resource
-     * @param bundle
-     * the bundle
-     * @return the FXML loader
-     * @throws IllegalStateException
-     * the illegal state exception
+     * @throws IllegalStateException If the FXML resource cannot be loaded.
      */
     @Throws(IllegalStateException::class)
     private fun loadSynchronously(resource: URL?, bundle: ResourceBundle?): FXMLLoader {
         val message = "Cannot load '$conventionalName'"
         val loader = FXMLLoader(resource, bundle)
         loader.controllerFactory = Callback { type: Class<*> -> createControllerForType(type) }
-        try {
+        return runCatching {
             loader.load<Any>()
-        } catch (e: IOException) {
+            loader
+        }.onFailure { e ->
             logger.error(e) { message }
-            throw IllegalStateException(message, e)
-        } catch (e: IllegalStateException) {
-            logger.error(e) { message }
+        }.getOrElse { e ->
             throw IllegalStateException(message, e)
         }
-        return loader
     }
 
     /**
-     * Ensure fxml loader initialized.
+     * Ensures that the underlying [FXMLLoader] is initialized and the presenter bean is set.
      */
     private fun ensureFxmlLoaderInitialized() {
-        if (::fxmlLoader.isInitialized) {
-            return
-        }
+        if (::fxmlLoader.isInitialized) return
+
         fxmlLoader = loadSynchronously(resource, resourceBundle)
         presenterProperty.set(fxmlLoader.getController())
     }
 
     /**
-     * Sets up the first view using the primary [Stage]
+     * Sets up the first view using the primary [Stage].
      */
     fun initFirstView() {
         isPrimaryStageView = true
-        val scene = if (view.scene != null) view.scene else Scene(view)
+        val scene = view.scene ?: Scene(view)
         stage.scene = scene
         GUIState.scene = scene
     }
 
     /**
-     * todo missing doc
+     * Hides the underlying [Stage].
      */
     fun hide() = stage.hide()
 
     /**
-     * Shows the FxmlView instance being the child stage of the given [Window]
+     * Shows the view as a child stage of the given owner [Window].
      *
-     * @param window
-     * The owner of the FxmlView instance
-     * @param modality
-     * See `javafx.stage.Modality`.
+     * @param window The owner window of this view.
+     * @param modality The modality configuration, defaults to the annotation value.
      */
-    fun showView(window: Window, modality: Modality = annotation.modality) {
+    fun showView(window: Window, modality: Modality = annotation?.modality ?: Modality.NONE) {
         if (!isPrimaryStageView && (currentStageModality != modality || stage.owner != window)) {
             GUIState.stage = createStage(modality)
             stage.initOwner(window)
@@ -168,12 +146,11 @@ abstract class AbstractFxmlView : ApplicationContextAware {
     }
 
     /**
-     * Shows the FxmlView instance on a top level [Window]
+     * Shows the view instance on a top-level [Window].
      *
-     * @param modality
-     * See `javafx.stage.Modality`.
+     * @param modality The modality configuration, defaults to the annotation value.
      */
-    fun showView(modality: Modality = annotation.modality) {
+    fun showView(modality: Modality = annotation?.modality ?: Modality.NONE) {
         if (!isPrimaryStageView && (currentStageModality != modality)) {
             GUIState.stage = createStage(modality)
         }
@@ -181,17 +158,15 @@ abstract class AbstractFxmlView : ApplicationContextAware {
     }
 
     /**
-     * Shows the FxmlView instance being the child stage of the given [Window] and waits
-     * to be closed before returning to the caller.
+     * Shows the view as a child stage of the given owner [Window] and blocks
+     * execution until the stage is closed.
      *
-     * @param window
-     * The owner of the FxmlView instance
-     * @param modality
-     * See `javafx.stage.Modality`.
+     * @param window The owner window of this view.
+     * @param modality The modality configuration, defaults to the annotation value.
      */
-    fun showViewAndWait(window: Window, modality: Modality = annotation.modality) {
+    fun showViewAndWait(window: Window, modality: Modality = annotation?.modality ?: Modality.NONE) {
         if (isPrimaryStageView) {
-            showView(modality) // this modality will be ignored anyway
+            showView(modality)
             return
         }
         if (currentStageModality != modality || stage.owner != window) {
@@ -202,15 +177,14 @@ abstract class AbstractFxmlView : ApplicationContextAware {
     }
 
     /**
-     * Shows the FxmlView instance on a top level [Window] and waits to be closed before
-     * returning to the caller.
+     * Shows the view instance on a top-level [Window] and blocks execution
+     * until the stage is closed.
      *
-     * @param modality
-     * See `javafx.stage.Modality`.
+     * @param modality The modality configuration, defaults to the annotation value.
      */
-    fun showViewAndWait(modality: Modality = annotation.modality) {
+    fun showViewAndWait(modality: Modality = annotation?.modality ?: Modality.NONE) {
         if (isPrimaryStageView) {
-            showView(modality) // this modality will be ignored anyway
+            showView(modality)
             return
         }
         if (currentStageModality != modality) {
@@ -220,23 +194,21 @@ abstract class AbstractFxmlView : ApplicationContextAware {
     }
 
     /**
-     * todo missing doc
+     * Helper factory to create a configured [Stage] instance.
      */
     private fun createStage(modality: Modality): Stage = with(Stage()) {
         currentStageModality = modality
         initModality(modality)
         title = defaultTitle
         initStyle(defaultStyle)
-        this.icons?.let { icons.addAll(it) }
-        scene = if (view.scene != null) view.scene else Scene(view)
-        return this
+        GUIState.stage.icons?.let { icons.addAll(it) }
+        scene = view.scene ?: Scene(view)
+        this
     }
 
     /**
-     * Initializes the view by loading the FXML (if not happened yet) and
-     * returns the top Node (parent) specified in the FXML file.
-     *
-     * @return the root view as determined from [FXMLLoader].
+     * Returns the root [Parent] node specified in the FXML file.
+     * Initializes the FXML structure on the first call.
      */
     val view: Parent
         get() {
@@ -247,110 +219,85 @@ abstract class AbstractFxmlView : ApplicationContextAware {
         }
 
     /**
-     * Initializes the view synchronously and invokes the consumer with the
-     * created parent Node within the FX UI thread.
-     *
-     * @param consumer
-     * - an object interested in received the [Parent] as
-     * callback
+     * Asynchronously retrieves the view and passes the [Parent] node to the consumer within the UI thread.
      */
     fun getView(consumer: Consumer<Parent>) {
-        CompletableFuture.supplyAsync({ view }) { runnable: Runnable? -> Platform.runLater(runnable) }
-                .thenAccept(consumer)
+        CompletableFuture.supplyAsync({ view }) { Platform.runLater(it) }
+            .thenAccept(consumer)
     }
 
     /**
-     * Scene Builder creates for each FXML document a root container. This
-     * method omits the root container (e.g. AnchorPane) and gives you
-     * the access to its first child.
-     *
-     * @return the first child of the AnchorPane or null if there are no
-     * children available from this view.
+     * Returns the first child of the root container, omitting the main layout pane.
      */
     val viewWithoutRootContainer: Node?
         get() {
             val children = view.childrenUnmodifiable
-            return if (children.isEmpty()) {
-                null
-            } else children.listIterator().next()
+            return if (children.isEmpty()) null else children.listIterator().next()
         }
 
     /**
-     * Adds the CSS if available.
-     *
-     * @param parent
-     * the parent
+     * Injects both global and local CSS stylesheets into the target [Parent] node.
      */
     fun addCSSIfAvailable(parent: Parent) {
-
-        // Read global css when available:
         val list = PropertyReaderHelper[applicationContext.environment, "javafx.css"]
         if (list.isNotEmpty()) {
-            list.forEach(Consumer { css ->
-                parent.stylesheets.add(
-                    javaClass.getResource(css)?.toExternalForm()
-                        ?: throw ResourceNotFoundException("Cannot find resource $css")
-                )
-            })
+            list.forEach { css ->
+                val resourceUri = javaClass.getResource(css)?.toExternalForm()
+                    ?: throw ResourceNotFoundException("Cannot find resource '$css'")
+                parent.stylesheets.add(resourceUri)
+            }
         }
+
         addCSSFromAnnotation(parent)
-        val uri = javaClass.getResource(styleSheetName) ?: return
-        val uriToCss = uri.toExternalForm()
-        parent.stylesheets.add(uriToCss)
+        javaClass.getResource(styleSheetName)?.toExternalForm()?.let { conventionalCss ->
+            parent.stylesheets.add(conventionalCss)
+        }
     }
 
     /**
-     * Adds the CSS from annotation to parent.
-     *
-     * @param parent
-     * the parent
+     * Helper to map and inject stylesheets declared via the [FXMLView] annotation.
      */
     private fun addCSSFromAnnotation(parent: Parent) {
-        if (annotation.css.isNotEmpty()) {
-            annotation.css.forEach { cssFile ->
+        val cssFiles = annotation?.css ?: emptyArray()
+        if (cssFiles.isNotEmpty()) {
+            cssFiles.forEach { cssFile ->
                 val uri = javaClass.getResource(cssFile)
                 if (uri != null) {
-                    val uriToCss = uri.toExternalForm()
-                    parent.stylesheets.add(uriToCss)
-                    logger.debug { "css file added to parent: $cssFile" }
+                    parent.stylesheets.add(uri.toExternalForm())
+                    logger.debug { "CSS file successfully injected from annotation: $cssFile" }
                 } else {
-                    logger.warn { "referenced $cssFile css file could not be located" }
+                    logger.warn { "Referenced CSS file could not be located: $cssFile" }
                 }
             }
         }
     }
 
     /**
-     * Gets the default title for to be shown in a (un)modal window.
-     *
+     * The default title to be shown in a window, derived from the annotation.
      */
-    val defaultTitle: String get() = annotation.title
+    val defaultTitle: String get() = annotation?.title.orEmpty()
 
     /**
-     * Gets the default style for a (un)modal window.
+     * The default style for the window stage.
      */
-    val defaultStyle: StageStyle get() = StageStyle.valueOf(annotation.stageStyle.uppercase(Locale.getDefault()))
+    val defaultStyle: StageStyle
+        get() = annotation?.stageStyle?.let { style ->
+            runCatching { StageStyle.valueOf(style.uppercase()) }.getOrElse { StageStyle.DECORATED }
+        } ?: StageStyle.DECORATED
 
     /**
-     * Gets the default modality for the window, this can be changed with annotation stageModality in FXMLView
+     * The default modality configuration for the window.
      */
-    val defaultModality: Modality get() = annotation.modality
+    val defaultModality: Modality get() = annotation?.modality ?: Modality.NONE
 
     /**
-     * Gets the style sheet name.
-     *
-     * @return the style sheet name
+     * Resolves the stylesheet resource path using conventional naming rules.
      */
     private val styleSheetName: String get() = fxmlRoot + getConventionalName(".css")
 
     /**
-     * In case the view was not initialized yet, the conventional fxml
-     * (airhacks.fxml for the AirhacksView and AirhacksPresenter) are loaded and
-     * the specified presenter / controller is going to be constructed and
-     * returned.
-     *
-     * @return the corresponding controller / presenter (usually for a
-     * AirhacksView the AirhacksPresenter)
+     * Retrieves the corresponding Spring-managed controller/presenter instance.
+     * Initializes the view hierarchy if it hasn't been loaded yet.
      */
     val presenter: Any
         get() {
@@ -359,102 +306,74 @@ abstract class AbstractFxmlView : ApplicationContextAware {
         }
 
     /**
-     * Does not initialize the view. Only registers the Consumer and waits until
-     * the view is going to be created / the method FXMLView#getView or
-     * FXMLView#getViewAsync invoked.
-     *
-     * @param presenterConsumer
-     * listener for the presenter construction
+     * Registers a callback listener to capture the construction of the presenter instance.
      */
     fun getPresenter(presenterConsumer: Consumer<Any?>) {
         presenterProperty.addListener { _, _, newValue -> presenterConsumer.accept(newValue) }
     }
 
     /**
-     * Gets the conventional name.
-     *
-     * @param ending
-     * the suffix to append
-     * @return the conventional name with stripped ending
+     * Appends the designated file extension suffix to the conventional name.
      */
     private fun getConventionalName(ending: String): String = conventionalName + ending
 
     /**
-     * Gets the conventional name.
-     *
-     * @return the name of the view without the "View" prefix in lowerCase. For
-     * AirhacksView just airhacks is going to be returned.
+     * Formats the view class name into its baseline convention (lowercase without the "view" suffix).
      */
     private val conventionalName: String
-        get() = stripEnding(javaClass.simpleName.lowercase(Locale.getDefault()))
+        get() = stripEnding(javaClass.simpleName.lowercase())
 
     /**
-     * Gets the bundle name.
-     *
-     * @return the bundle name
+     * Evaluates and returns the target resource bundle name.
      */
     private val bundleName: String
         get() {
-            return if (annotation.bundle.isEmpty()) {
-                val bundle = "${javaClass.getPackage().name}.$conventionalName"
-                logger.debug { "Bundle: $bundle based on conventional name." }
-                bundle
+            val annotatedBundle = annotation?.bundle.orEmpty()
+            return if (annotatedBundle.isEmpty()) {
+                val conventionalBundle = "${javaClass.packageName}.$conventionalName"
+                logger.debug { "Bundle: $conventionalBundle based on conventional name." }
+                conventionalBundle
             } else {
-                val bundle = annotation.bundle
-                logger.debug { "Annotated bundle: $bundle" }
-                bundle
+                logger.debug { "Annotated bundle: $annotatedBundle" }
+                annotatedBundle
             }
         }
 
     /**
-     * Gets the fxml file path.
-     *
-     * @return the relative path to the fxml file derived from the FXML view.
-     * e.g. The name for the AirhacksView is going to be
-     * <PATH>/airhacks.fxml.
-    </PATH> */
+     * Resolves the relative path to the FXML file derived from this view class structure.
+     */
     val fxmlPath: String
         get() {
-            val fxmlPath = fxmlRoot + getConventionalName(".fxml")
-            logger.debug { "Determined fxmlPath: $fxmlPath" }
-            return fxmlPath
+            val resolvedPath = fxmlRoot + getConventionalName(".fxml")
+            logger.debug { "Determined fxmlPath: $resolvedPath" }
+            return resolvedPath
         }
 
     /**
-     * Returns a resource bundle if available
-     *
-     * @param name
-     * the name of the resource bundle.
-     * @return the resource bundle
+     * Safe lookup to retrieve a localized [ResourceBundle] using a specific charset control.
      */
     private fun getResourceBundle(name: String): ResourceBundle? {
-        return try {
-            logger.debug { "Resource bundle: $name" }
+        logger.debug { "Resource bundle lookup: $name" }
+        return runCatching {
             ResourceBundle.getBundle(name, ResourceBundleControl(resourceBundleCharset))
-        } catch (ex: MissingResourceException) {
-            logger.debug { "No resource bundle could be determined: ${ex.message}" }
-            null
-        }
+        }.onFailure { ex ->
+            logger.debug(ex) { "No resource bundle could be determined: ${ex.message}" }
+        }.getOrNull()
     }
 
     /**
-     * Returns the charset to use when reading resource bundles as specified in
-     * the annotation.
-     *
-     * @return  the charset
+     * The target encoding charset specified in the annotation parameters.
      */
     private val resourceBundleCharset: Charset
-        get() = Charset.forName(annotation.encoding)
+        get() = runCatching {
+            Charset.forName(annotation?.encoding ?: "UTF-8")
+        }.getOrElse { Charset.defaultCharset() }
 
     companion object {
         private val logger = KotlinLogging.logger { }
 
         /**
-         * Strip ending.
-         *
-         * @param clazz
-         * the clazz
-         * @return the string
+         * Strips the trailing "view" suffix from the formatted class name.
          */
         private fun stripEnding(clazz: String): String =
             if (!clazz.endsWith("view")) clazz
