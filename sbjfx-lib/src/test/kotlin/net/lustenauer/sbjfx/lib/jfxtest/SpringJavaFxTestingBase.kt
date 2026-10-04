@@ -54,9 +54,9 @@ internal open class SpringJavaFxTestingBase : ApplicationContextAware {
             if (headless) {
                 setProperty("testfx.robot", "glass")
                 setProperty("testfx.headless", "true")
-                setProperty("prism.order", "sw")
-                setProperty("prism.text", "t2k")
-                setProperty("java.awt.headless", "true")
+                setProperty("glass.platform", "Monocle")
+                setProperty("monocle.platform", "Headless")
+                setProperty("java.awt.headless", "false")
                 setProperty("headless.geometry", geometryProp)
             } else {
                 setProperty("java.awt.headless", "false")

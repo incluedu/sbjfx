@@ -1,5 +1,18 @@
 # Version History
 
+
+## V0.2.0 - 04.10.2026 - Patric Hollenstein
+
+* Upgrade project to Java 21 (LTS) via Gradle Toolchains
+* Upgrade Spring Boot framework to version 3.3.4
+* Migrate deployment baseline from Java 17 to Java 21
+* Upgrade JavaFX dependencies to version 21
+* Modernize Kotlin version to 1.9.25 and Kotlin Logging to 5.1.4
+* Complete overhaul of the build system infrastructure to Gradle 8.10.2
+* Migrate all source and test imports from legacy 'javax.*' to modern 'jakarta.*' (Jakarta EE 10)
+* Fix application context bootstrap sequence for Spring Boot 3 in IDE environments
+* Resolve test classpath conflicts by removing redundant SLF4J simple binding in favor of Logback
+
 ## V0.0.4
 
 * Update Springboot to version 2.7.6

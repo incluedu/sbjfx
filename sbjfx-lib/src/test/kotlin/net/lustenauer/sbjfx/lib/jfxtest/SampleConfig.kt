@@ -7,7 +7,4 @@ import org.springframework.context.annotation.Configuration
 internal open class SampleConfig {
     @Bean
     open fun testView(): SampleView = SampleView()
-
-    @Bean
-    open fun erroredView(): SampleIncorrectView = SampleIncorrectView()
 }

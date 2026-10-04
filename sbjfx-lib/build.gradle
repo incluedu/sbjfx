@@ -10,35 +10,42 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-    implementation "org.springframework.boot:spring-boot:$springBootVersion"
+    // Spring Boot 3 & Kotlin Core Dependencies (Versionen kommen aus der gradle.properties)
+    implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    implementation "io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion"
 
-    testImplementation 'org.slf4j:slf4j-simple:2.0.5'
-    testImplementation 'org.assertj:assertj-core:3.23.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
-    testImplementation 'org.testfx:testfx-core:4.0.16-alpha'
-    testImplementation 'org.testfx:testfx-junit5:4.0.16-alpha'
-    testImplementation 'org.testfx:openjfx-monocle:jdk-12.0.1+2'
-    testImplementation 'io.mockk:mockk-jvm:1.13.5'
+    // Modernisiertes Logging-Modul kompatibel mit Kotlin 1.9+
+    implementation "io.github.oshai:kotlin-logging-jvm:5.1.4"
+
+    // Test-Bibliotheken aktualisiert für Spring Boot 3 / Jakarta
+    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+    testImplementation 'org.assertj:assertj-core:3.25.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+
+    // UI-Test-Werkzeuge für JavaFX 21
+    testImplementation 'org.testfx:testfx-core:4.0.17'
+    testImplementation 'org.testfx:testfx-junit5:4.0.17'
+    testImplementation 'org.testfx:openjfx-monocle:17.0.10'
+    testImplementation 'io.mockk:mockk-jvm:1.13.10'
 }
 
 group = 'net.lustenauer'
-version = '0.0.7'
+version = '0.2.0-SNAPSHOT'
 description = 'sbjfx-lib'
-java.sourceCompatibility = JavaVersion.VERSION_11
 
 java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
     withSourcesJar()
     withJavadocJar()
 }
 
 javafx {
     version = "$javafxVersion"
-    modules = ['javafx.controls', 'javafx.fxml']
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics']
 }
 
 tasks.withType(JavaCompile) {
@@ -60,7 +67,6 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
 
-            // create the sign pom artifact
             pom {
                 name = 'SBJFX'
                 description = 'This is a port of the library springboot-java-fx-support by Felix Roske to Kotlin and JAVAFX11. Information on the original can be found at https://github.com/roskenet/springboot-javafx-support'
@@ -107,7 +113,6 @@ publishing {
             }
         }
     }
-
 }
 
 signing {

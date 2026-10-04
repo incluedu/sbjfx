@@ -1,5 +1,6 @@
 package net.lustenauer.sbjfx.lib
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.application.Application
 import javafx.application.HostServices
 import javafx.application.Platform
@@ -10,15 +11,12 @@ import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.stage.Stage
 import javafx.stage.StageStyle
-import javafx.stage.StageStyle.DECORATED
 import javafx.stage.StageStyle.TRANSPARENT
-import mu.KotlinLogging
 import net.lustenauer.sbjfx.lib.PropertyReaderHelper.setIfPresent
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import java.awt.SystemTray
-import java.util.*
 import java.util.concurrent.CompletableFuture
 
 
@@ -79,33 +77,33 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         GUIState.hostServices = hostServices
 
         with(Stage(TRANSPARENT)) {
-            if (splashScreen.visible) {
-                scene = Scene(splashScreen.parent, Color.TRANSPARENT)
-                beforeShowingSplash(this)
-                show()
+            val launchInitialView = Runnable {
+                val initialView = savedInitialView
+                if (initialView != null) {
+                    showInitialView(initialView)
+                } else {
+                    logger.error { "savedInitialView ist null! Die Anwendung wurde vermutlich nicht über launch() gestartet." }
+                }
             }
 
-            splashIsShowing.complete(Runnable {
-                showInitialView()
-                if (splashScreen.visible) {
-                    close()
+            if (splashScreen == null) {
+                splashIsShowing.complete(launchInitialView)
+                return@with
+            } else {
+                if (splashScreen!!.visible) {
+                    scene = Scene(splashScreen!!.parent, Color.TRANSPARENT)
+                    beforeShowingSplash(this)
+                    show()
                 }
-            })
-        }
-    }
 
-    /**
-     * Show initial view.
-     */
-    private fun showInitialView() {
-        val stageStyle = applicationContext.environment.getProperty(KEY_STAGE_STYLE)
-        if (stageStyle != null) {
-            stage.initStyle(StageStyle.valueOf(stageStyle.uppercase(Locale.getDefault())))
-        } else {
-            stage.initStyle(DECORATED)
+                splashIsShowing.complete(Runnable {
+                    launchInitialView.run()
+                    if (splashScreen!!.visible) {
+                        close()
+                    }
+                })
+            }
         }
-        beforeInitialView(stage, applicationContext)
-        showInitialView(savedInitialView)
     }
 
     /**
@@ -171,8 +169,8 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         private const val KEY_APP_ICONS = "javafx.appIcons"
 
 
-        lateinit var savedInitialView: Class<out AbstractFxmlView>
-        lateinit var splashScreen: SplashScreen
+        var savedInitialView: Class<out AbstractFxmlView>? = null
+        var splashScreen: SplashScreen? = null
         lateinit var applicationContext: ConfigurableApplicationContext
 
         private val logger = KotlinLogging.logger { }
@@ -204,6 +202,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                         "The application will stop now."
             ).showAndWait().ifPresent { Platform.exit() }
         }
+
         /**
          * Apply env props to view.
          */
@@ -258,11 +257,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
             launch(appClass, *args)
         }
 
-        /**
-         * Show view.
-         *
-         * @param newView the new view
-         */
         @JvmStatic
         fun showInitialView(newView: Class<out AbstractFxmlView>) {
             try {
@@ -284,6 +278,7 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         fun setErrorAction(callback: (throwable: Throwable) -> Unit) {
             errorAction = callback
         }
+
         internal fun isApplicationContextInitialized() = ::applicationContext.isInitialized
     }
 }
