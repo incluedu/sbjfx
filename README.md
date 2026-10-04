@@ -4,7 +4,7 @@ Gradle
 ```groovy
 dependencies {
     // Ab v0.2.0 für Java 21 & Spring Boot 3.x
-    implementation "net.lustenauer:sbjfx-lib:0.2.0-SNAPSHOT"
+    implementation "net.lustenauer:sbjfx-lib:0.2.0"
 }
 ```
 
@@ -12,7 +12,7 @@ Gradle (Kotlin)
 ```kotlin
 dependencies {
     // Ab v0.2.0 für Java 21 & Spring Boot 3.x
-    implementation("net.lustenauer:sbjfx-lib:0.2.0-SNAPSHOT")
+    implementation("net.lustenauer:sbjfx-lib:0.2.0")
 }
 ```
 
