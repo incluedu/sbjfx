@@ -1,24 +1,21 @@
 package net.lustenauer.sbjfx.lib
 
 import java.io.IOException
-import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.Charset
-import java.util.*
+import java.util.Locale
+import java.util.PropertyResourceBundle
+import java.util.ResourceBundle
 
 /**
- * Control that uses a custom [Charset] when reading resource bundles,
- * compared to the default charset which is ISO-8859-1.
+ * Custom [ResourceBundle.Control] implementation that enforces a specified [Charset]
+ * (e.g., UTF-8) when reading property resource bundles, overriding the Java default ISO-8859-1.
  *
+ * @param charset The target character encoding charset to use.
  * @author Emil Forslund
- * @since  2.1.6
+ * @author Patric Hollenstein
  */
-class ResourceBundleControl(charset: Charset) : ResourceBundle.Control() {
-    private val charset: Charset
-
-    init {
-        this.charset = Objects.requireNonNull(charset)
-    }
+class ResourceBundleControl(private val charset: Charset) : ResourceBundle.Control() {
 
     @Throws(IllegalAccessException::class, InstantiationException::class, IOException::class)
     override fun newBundle(
@@ -27,34 +24,28 @@ class ResourceBundleControl(charset: Charset) : ResourceBundle.Control() {
         format: String,
         loader: ClassLoader,
         reload: Boolean
-    ): ResourceBundle {
+    ): ResourceBundle? {
+        if (format != "java.properties") {
+            return super.newBundle(baseName, locale, format, loader, reload)
+        }
+
         val bundleName = toBundleName(baseName, locale)
         val resourceName = toResourceName(bundleName, "properties")
-        var bundle: ResourceBundle? = null
-        var stream: InputStream? = null
-        if (reload) {
-            val url = loader.getResource(resourceName)
-            if (url != null) {
-                val connection = url.openConnection()
-                if (connection != null) {
-                    connection.useCaches = false
-                    stream = connection.getInputStream()
-                }
+
+        val stream = runCatching {
+            if (reload) {
+                loader.getResource(resourceName)?.openConnection()?.apply {
+                    useCaches = false
+                }?.getInputStream()
+            } else {
+                loader.getResourceAsStream(resourceName)
             }
-        } else {
-            stream = loader.getResourceAsStream(resourceName)
+        }.getOrNull() ?: return null
+
+        return stream.use { inputStream ->
+            runCatching {
+                PropertyResourceBundle(InputStreamReader(inputStream, charset))
+            }.getOrNull()
         }
-        if (stream != null) {
-            bundle = try {
-                PropertyResourceBundle(
-                    InputStreamReader(
-                        stream, charset
-                    )
-                )
-            } finally {
-                stream.close()
-            }
-        }
-        return bundle!!
     }
 }

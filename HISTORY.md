@@ -1,6 +1,8 @@
 # Version History
 
 
+# Version History
+
 ## V0.2.0 - 04.10.2026 - Patric Hollenstein
 
 * Upgrade project to Java 21 (LTS) via Gradle Toolchains
@@ -12,6 +14,11 @@
 * Migrate all source and test imports from legacy 'javax.*' to modern 'jakarta.*' (Jakarta EE 10)
 * Fix application context bootstrap sequence for Spring Boot 3 in IDE environments
 * Resolve test classpath conflicts by removing redundant SLF4J simple binding in favor of Logback
+* Complete architectural refactoring of core library classes (`AbstractFxmlView`, `ResourceBundleControl`, `PropertyReaderHelper`, `GUIState`, `SplashScreen`)
+* Migrated deprecated Java reflection patterns and legacy `try-catch` structures to idiomatic Kotlin `runCatching` blocks
+* Implemented automatic lifecycle tracking properties (`isSceneInitialized`, `isStageInitialized`) within `GUIState` to prevent `UninitializedPropertyAccessException` risks
+* Fixed Spring Boot 3 `AnnotationBeanNameGenerator` deprecation warnings by integrating explicit `@AliasFor` component scanning attributes into the `@FXMLView` stereotype annotation
+* Introduced auto-closing `.use {}` resource mechanics to prevent potential I/O stream file leaks during encoding translation operations
 
 ## V0.0.4
 

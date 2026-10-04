@@ -9,60 +9,35 @@ import javafx.scene.text.Text
 import net.lustenauer.sbjfx.lib.exceptions.ResourceNotFoundException
 
 /**
- * A default standard splash pane implementation Subclass it and override its
- * methods to customize with your own behavior. Be aware that you can not use
- * Spring features here yet.
+ * Default standard JavaFX splash pane implementation.
+ * Subclass this to customize with your own layout and image assets.
+ * Note that Spring Boot dependency injection is not yet available during this lifecycle stage.
  *
  * @author Felix Roske
  * @author Andreas Jay
  * @author Patric Hollenstein
  */
 open class SplashScreen {
-    /**
-     * Change this for custom splash image of default splash pane
-     */
-    open var imagePath = DEFAULT_IMAGE_PATH
+
+    open var imagePath: String = DEFAULT_IMAGE_PATH
+    open var style: String = DEFAULT_STYLE
+    open var headerText: String = DEFAULT_HEADER_TEXT
+    open var footerText: String = DEFAULT_FOOTER_TEXT
+    open var contentText: String = DEFAULT_CONTENT_TEXT
+    open var visible: Boolean = true
 
     /**
-     * Change this for custom style of default splash pane
+     * Resolves and constructs the graphical UI parent node container for the splash screen window.
      *
-     * @return empty by default
-     */
-    open var style = DEFAULT_STYLE
-
-    /**
-     * Change this for custom header text in default splash pane
-     */
-    open var headerText = DEFAULT_HEADER_TEXT
-
-    /**
-     * Change this for custom footer text in default splash pane
-     */
-    open var footerText = DEFAULT_FOOTER_TEXT
-
-    /**
-     * Change this for custom content text in default splash pane
-     */
-    open var contentText = DEFAULT_CONTENT_TEXT
-
-    /**
-     * Customize if the splash screen should be visible at all.
-     *
-     * @return true by default
-     */
-    open var visible = true
-
-    /**
-     * Override this to create your own splash pane parent node.
-     *
-     * @return A standard image
+     * @return The fully populated [Parent] layout node hierarchy.
+     * @throws ResourceNotFoundException If the designated image resource file cannot be located.
      */
     open val parent: Parent
         get() {
-            val imageView = ImageView(
-                javaClass.getResource(imagePath)?.toExternalForm()
-                    ?: throw ResourceNotFoundException("Cannot found image path $imagePath")
-            )
+            val resourceUrl = javaClass.getResource(imagePath)?.toExternalForm()
+                ?: throw ResourceNotFoundException("Cannot find image resource at path '$imagePath'")
+
+            val imageView = ImageView(resourceUrl)
 
             return VBox().apply {
                 style = this@SplashScreen.style
@@ -77,6 +52,7 @@ open class SplashScreen {
                 )
             }
         }
+
     companion object {
         const val DEFAULT_STYLE = ""
         const val DEFAULT_IMAGE_PATH = "/splash/javafx.png"
