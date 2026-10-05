@@ -99,7 +99,7 @@ publishing {
     repositories {
         maven {
             name = "OSSRH"
-            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            url = "https://sonatype.com"
             credentials {
                 username = project.findProperty("nexusUsername") ?: System.getenv("MAVEN_USERNAME")
                 password = project.findProperty("nexusPassword") ?: System.getenv("MAVEN_PASSWORD")
@@ -134,6 +134,7 @@ javadoc {
         options.addBooleanOption('html5', true)
     }
 }
+
 tasks.withType(KotlinCompile).configureEach {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
