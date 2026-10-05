@@ -39,4 +39,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSPHRASE }}
-          ORG_GRADLE_PROJECT_signingKeyId: 'C20F5B02'
+          ORG_GRADLE_PROJECT_signingKeyId: '006B9F89'
