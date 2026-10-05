@@ -3,14 +3,14 @@
 Gradle
 ```groovy
 dependencies {
-    implementation "net.lustenauer:sbjfx-lib:0.2.3"
+    implementation "net.lustenauer:sbjfx-lib:0.2.4"
 }
 ```
 
 Gradle (Kotlin)
 ```kotlin
 dependencies {
-    implementation("net.lustenauer:sbjfx-lib:0.2.3")
+    implementation("net.lustenauer:sbjfx-lib:0.2.4")
 }
 ```
 

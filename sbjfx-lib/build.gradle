@@ -33,7 +33,7 @@ dependencies {
 }
 
 group = 'net.lustenauer'
-version = '0.2.3'
+version = '0.2.34
 description = 'sbjfx-lib'
 
 java {
@@ -99,7 +99,7 @@ publishing {
     repositories {
         maven {
             name = "OSSRH"
-            url = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
             credentials {
                 username = project.findProperty("nexusUsername") ?: System.getenv("MAVEN_USERNAME")
                 password = project.findProperty("nexusPassword") ?: System.getenv("MAVEN_PASSWORD")
