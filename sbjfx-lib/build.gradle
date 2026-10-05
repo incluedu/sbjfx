@@ -33,7 +33,7 @@ dependencies {
 }
 
 group = 'net.lustenauer'
-version = '0.2.34
+version = '0.2.5'
 description = 'sbjfx-lib'
 
 java {
