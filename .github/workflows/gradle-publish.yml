@@ -2,7 +2,7 @@ name: Gradle Package Release
 
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build:
@@ -47,7 +47,7 @@ jobs:
           $token = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($pair))
           Invoke-RestMethod `
             -Method Post `
-            -Uri "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/net.lustenauer?publishing_type=user_managed" `
+            -Uri "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/net.lustenauer?publishing_type=automatic" `
             -Headers @{ Authorization = "Bearer $token" }
 
       - name: Publish to GitHub Packages
