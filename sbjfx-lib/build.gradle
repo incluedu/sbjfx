@@ -12,28 +12,8 @@ apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-dependencies {
-    compileOnly 'org.jspecify:jspecify:1.0.0'
-
-    implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-
-    implementation "io.github.oshai:kotlin-logging-jvm:5.1.4"
-
-    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-    testImplementation 'org.assertj:assertj-core:3.25.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
-
-    testImplementation 'org.testfx:testfx-core:4.0.17'
-    testImplementation 'org.testfx:testfx-junit5:4.0.17'
-    testImplementation 'org.testfx:openjfx-monocle:17.0.10'
-    testImplementation 'io.mockk:mockk-jvm:1.13.10'
-}
-
 group = 'net.lustenauer'
-version = '0.2.6'
+version = '0.2.7'
 description = 'sbjfx-lib'
 
 java {
@@ -49,6 +29,28 @@ javafx {
     modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics']
 }
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.jspecify:jspecify:1.0.0'
+    implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    implementation "io.github.oshai:kotlin-logging-jvm:5.1.4"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+    testImplementation 'org.assertj:assertj-core:3.25.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+
+    testImplementation 'org.testfx:testfx-core:4.0.17'
+    testImplementation 'org.testfx:testfx-junit5:4.0.17'
+    testImplementation 'org.testfx:openjfx-monocle:17.0.10'
+    testImplementation 'io.mockk:mockk-jvm:1.13.10'
+}
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
@@ -59,10 +61,6 @@ test {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -70,7 +68,7 @@ publishing {
 
             pom {
                 name = 'SBJFX'
-                description = 'This is a port of the library springboot-java-fx-support by Felix Roske to Kotlin and JAVAFX11. Information on the original can be found at https://github.com/roskenet/springboot-javafx-support'
+                description = 'This is a port of the library springboot-java-fx-support by Felix Roske to Kotlin and JAVAFX11.'
                 url = 'https://github.com/incluedu/sbjfx'
                 inceptionYear = '2022'
 
@@ -80,6 +78,7 @@ publishing {
                         url = 'https://opensource.org/licenses/MIT'
                     }
                 }
+
                 developers {
                     developer {
                         id = 'incluedu'
@@ -96,18 +95,20 @@ publishing {
             }
         }
     }
+
     repositories {
         maven {
-            name = "OSSRH"
+            name = "SonatypeCentral"
             url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
             credentials {
                 username = project.findProperty("nexusUsername") ?: System.getenv("MAVEN_USERNAME")
                 password = project.findProperty("nexusPassword") ?: System.getenv("MAVEN_PASSWORD")
             }
         }
+
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/incluedu/sbjfx")
+            url = uri("https://maven.pkg.github.com/incluedu")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
                 password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
