@@ -3,7 +3,7 @@
 
 # Version History
 
-## V0.2.9 - 06.10.2026 - Patric Hollenstein
+## V0.2.10 - 06.10.2026 - Patric Hollenstein
 
 * Upgrade project to Java 21 (LTS) via Gradle Toolchains
 * Upgrade Spring Boot framework to version 3.3.4
