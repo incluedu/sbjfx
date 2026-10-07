@@ -221,12 +221,6 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
         }
 
         /**
-         * Main launch hook variant that provisions a standard default splash window instance context.
-         */
-        fun launch(appClass: Class<out Application>, view: Class<out AbstractFxmlView>, args: Array<String>) =
-            launch(appClass, view, SplashScreen(), args)
-
-        /**
          * Entry framework method that triggers the initialization sequence for both JavaFX and the Spring environment.
          */
         @JvmStatic
@@ -236,13 +230,18 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
             splashScreen: SplashScreen?,
             args: Array<String>
         ) {
+            logger.info { "Igniting framework bootstrap sequence for view class: ${view.name}" }
+
             savedInitialView = view
             savedArgs = args
             Companion.splashScreen = splashScreen ?: SplashScreen()
 
             if (SystemTray.isSupported()) {
                 GUIState.systemTray = SystemTray.getSystemTray()
+                logger.debug { "System tray support detected and successfully registered in GUIState" }
             }
+
+            logger.info { "Invoking native JavaFX Application launch process..." }
             launch(appClass, *args)
         }
 
