@@ -13,7 +13,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'net.lustenauer'
-version = '0.2.10'
+version = '0.2.11'
 description = 'sbjfx-lib'
 
 java {

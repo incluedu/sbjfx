@@ -87,6 +87,8 @@ abstract class AbstractJavaFxApplicationSupport : Application() {
                     showInitialView(initialView)
                 } else {
                     logger.error { "savedInitialView is null! The application was likely not launched via the support bootstrap." }
+                    Platform.exit()
+                    kotlin.system.exitProcess(1)
                 }
             }
 
