@@ -1,6 +1,6 @@
 # Version History
 
-## v0.2.12 - 07.10.2026 - Patric Hollenstein
+## v0.2.13 - 07.10.2026 - Patric Hollenstein
 
 - **SBFX-51:** Decoupled the FXML classpath path from the Spring bean name inside the `@FXMLView` stereotype annotation. Introduced a dedicated `fxml` parameter to prevent Spring Boot 3 bootstrap validation crashes caused by slashes and paths inside the implicit `@AliasFor` bean name generator (`Component.value`). Existing documentation comments have been fully preserved and modernized.
 
