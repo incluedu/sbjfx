@@ -24,6 +24,12 @@ annotation class FXMLView(
     val value: String = "",
 
     /**
+     * The explicit classpath path to the target FXML layout file (e.g., "/view/mainWindow.fxml").
+     * Separated from the Spring bean name to prevent path validation issues in Spring Boot 3.
+     */
+    val fxml: String = "",
+
+    /**
      * Local CSS stylesheets to be applied together with this specific view layout hierarchy.
      */
     val css: Array<String> = [],

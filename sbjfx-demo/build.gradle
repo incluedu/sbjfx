@@ -42,4 +42,6 @@ repositories {
 
 bootRun {
     jvmArgs = ['-Djavafx.verbose=false', '-Dprism.verbose=false']
+    systemProperty 'java.awt.headless', 'false'
+    mainClass = 'net.lustenauer.sbjfx.demo.AppLauncher'
 }

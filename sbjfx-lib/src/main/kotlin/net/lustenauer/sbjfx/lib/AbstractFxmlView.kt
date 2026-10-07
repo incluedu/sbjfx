@@ -60,14 +60,22 @@ abstract class AbstractFxmlView : ApplicationContextAware {
     }
 
     /**
-     * Gets the resource URL. This will be derived from applied annotation value
-     * or from naming convention.
+     * Gets the resource URL. This will be derived from applied annotation value,
+     * the new fxml property, or from naming convention.
      *
      * @return the URL resource
      */
     @Throws(ResourceNotFoundException::class)
     private fun getResource(): URL {
-        val path = annotation?.value?.ifEmpty { fxmlPath } ?: fxmlPath
+        val path = when {
+            annotation != null && annotation.fxml.isNotEmpty() -> annotation.fxml
+
+            annotation != null && annotation.value.isNotEmpty() &&
+                    (annotation.value.endsWith(".fxml") || annotation.value.contains("/")) -> annotation.value
+
+            else -> fxmlPath
+        }
+
         return javaClass.getResource(path)
             ?: throw ResourceNotFoundException("Failed to load resource file '$path'")
     }
